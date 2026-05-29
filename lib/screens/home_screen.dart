@@ -4,6 +4,8 @@ import 'registro_screen.dart';
 import 'metas_screen.dart';
 import 'calculadora_screen.dart';
 import 'materiais_screen.dart';
+import '../data/app_data.dart';
+import 'planejamento_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,25 +18,38 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int paginaAtual = 0;
 
-  final List<Widget> paginas = [
-    const DashboardPage(),
-    const RegistroScreen(),
+  List<Widget> get paginas => [
+
+    DashboardPage(),
+
+    RegistroScreen(
+      atualizarHome: () {
+        setState(() {});
+      },
+    ),
+
     const MetasScreen(),
     const CalculadoraScreen(),
     const MateriaisScreen(),
+    const PlanejamentoScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
 
-      body: paginas[paginaAtual],
+      body: IndexedStack(
+        index: paginaAtual,
+        children: paginas,
+      ),
 
       bottomNavigationBar: NavigationBar(
 
         selectedIndex: paginaAtual,
 
         onDestinationSelected: (index) {
+
           setState(() {
             paginaAtual = index;
           });
@@ -66,14 +81,61 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.menu_book),
             label: 'Materiais',
           ),
+          
+          NavigationDestination(
+            icon: Icon(Icons.timeline),
+            label: 'Planejamento',
+          ),
         ],
       ),
     );
   }
 }
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
+
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() =>
+      _DashboardPageState();
+}
+
+class _DashboardPageState
+    extends State<DashboardPage> {
+
+  double totalVendido() {
+
+    double total = 0;
+
+    for (var registro in registrosGlobais) {
+      total += registro.vendido;
+    }
+
+    return total;
+  }
+
+  double totalComprado() {
+
+    double total = 0;
+
+    for (var registro in registrosGlobais) {
+      total += registro.comprado;
+    }
+
+    return total;
+  }
+
+  int totalLivros() {
+
+    int total = 0;
+
+    for (var registro in registrosGlobais) {
+      total += registro.quantidade;
+    }
+
+    return total;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,8 +178,8 @@ class DashboardPage extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // CARD PROGRESSO
             Container(
+
               padding: const EdgeInsets.all(20),
 
               decoration: BoxDecoration(
@@ -132,7 +194,9 @@ class DashboardPage extends StatelessWidget {
                 children: [
 
                   const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                    mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
 
                     children: [
 
@@ -185,7 +249,7 @@ class DashboardPage extends StatelessWidget {
             const SizedBox(height: 24),
 
             const Text(
-              'Resumo de Hoje',
+              'Resumo Geral',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -200,7 +264,8 @@ class DashboardPage extends StatelessWidget {
                 Expanded(
                   child: dashboardCard(
                     titulo: 'Vendido',
-                    valor: 'R\$ 350',
+                    valor:
+                        'R\$ ${totalVendido().toStringAsFixed(2)}',
                     cor: Colors.green,
                     icone: Icons.attach_money,
                   ),
@@ -211,7 +276,8 @@ class DashboardPage extends StatelessWidget {
                 Expanded(
                   child: dashboardCard(
                     titulo: 'Comprado',
-                    valor: 'R\$ 220',
+                    valor:
+                        'R\$ ${totalComprado().toStringAsFixed(2)}',
                     cor: Colors.orange,
                     icone: Icons.shopping_cart,
                   ),
@@ -227,7 +293,7 @@ class DashboardPage extends StatelessWidget {
                 Expanded(
                   child: dashboardCard(
                     titulo: 'Livros',
-                    valor: '12',
+                    valor: '${totalLivros()}',
                     cor: Colors.blue,
                     icone: Icons.menu_book,
                   ),
@@ -258,23 +324,25 @@ class DashboardPage extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            registroTile(
-              '20/05/2026',
-              'R\$ 350',
-              '12 livros',
-            ),
+            if (registrosGlobais.isEmpty)
 
-            registroTile(
-              '19/05/2026',
-              'R\$ 420',
-              '15 livros',
-            ),
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text(
+                    'Nenhum registro ainda',
+                  ),
+                ),
+              ),
 
-            registroTile(
-              '18/05/2026',
-              'R\$ 180',
-              '7 livros',
-            ),
+            ...registrosGlobais.reversed.map((registro) {
+
+              return registroTile(
+                '${registro.data.day}/${registro.data.month}/${registro.data.year}',
+                'R\$ ${registro.vendido.toStringAsFixed(2)}',
+                '${registro.quantidade} livros',
+              );
+            }),
           ],
         ),
       ),
@@ -287,6 +355,7 @@ class DashboardPage extends StatelessWidget {
     required Color cor,
     required IconData icone,
   }) {
+
     return Container(
 
       padding: const EdgeInsets.all(18),
@@ -298,7 +367,7 @@ class DashboardPage extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             blurRadius: 10,
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
           )
         ],
       ),
@@ -346,6 +415,7 @@ class DashboardPage extends StatelessWidget {
     String valor,
     String livros,
   ) {
+
     return Container(
 
       margin: const EdgeInsets.only(bottom: 12),
@@ -359,19 +429,21 @@ class DashboardPage extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             blurRadius: 8,
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
           )
         ],
       ),
 
       child: Row(
 
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment:
+            MainAxisAlignment.spaceBetween,
 
         children: [
 
           Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
 
             children: [
 
