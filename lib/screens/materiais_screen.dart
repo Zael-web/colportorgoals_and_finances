@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/material_model.dart';
-
+import '../data/app_data.dart';
 
 class MateriaisScreen extends StatefulWidget {
   const MateriaisScreen({super.key});
@@ -22,11 +22,22 @@ class _MateriaisScreenState
   final TextEditingController vendaController =
       TextEditingController();
 
-  List<MaterialModel> materiais = [];
+  int? editandoIndex;
 
-  void adicionarMaterial() {
+  @override
+  void initState() {
+    super.initState();
+    carregar();
+  }
 
-    String nome = nomeController.text;
+  Future<void> carregar() async {
+    await carregarMateriaisGlobais();
+    setState(() {});
+  }
+
+  void adicionarMaterial() async {
+
+    String nome = nomeController.text.trim();
 
     double compra =
         double.tryParse(compraController.text) ?? 0;
@@ -49,18 +60,73 @@ class _MateriaisScreenState
 
     setState(() {
 
-      materiais.add(
-        MaterialModel(
+      if (editandoIndex != null) {
+
+        materiaisGlobais[editandoIndex!] =
+            MaterialModel(
           nome: nome,
           valorCompra: compra,
           valorVenda: venda,
-        ),
-      );
+        );
+
+        editandoIndex = null;
+
+      } else {
+
+        materiaisGlobais.add(
+          MaterialModel(
+            nome: nome,
+            valorCompra: compra,
+            valorVenda: venda,
+          ),
+        );
+      }
     });
+
+    await salvarMateriaisGlobais();
 
     nomeController.clear();
     compraController.clear();
     vendaController.clear();
+  }
+
+  void editarMaterial(int index) {
+
+    final material =
+        materiaisGlobais[index];
+
+    nomeController.text =
+        material.nome;
+
+    compraController.text =
+        material.valorCompra.toString();
+
+    vendaController.text =
+        material.valorVenda.toString();
+
+    editandoIndex = index;
+
+    setState(() {});
+  }
+
+  Future<void> excluirMaterial(
+      int index) async {
+
+    setState(() {
+      materiaisGlobais.removeAt(index);
+    });
+
+    await salvarMateriaisGlobais();
+  }
+
+  @override
+  void dispose() {
+
+    nomeController.dispose();
+    compraController.dispose();
+    vendaController.dispose();
+
+    super.dispose();
   }
 
   @override
@@ -128,9 +194,12 @@ class _MateriaisScreenState
                   backgroundColor: Colors.green,
                 ),
 
-                child: const Text(
-                  'Adicionar Material',
-                  style: TextStyle(
+                child: Text(
+                  editandoIndex == null
+                      ? 'Adicionar Material'
+                      : 'Salvar Alteração',
+
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                   ),
@@ -156,7 +225,7 @@ class _MateriaisScreenState
 
             Expanded(
 
-              child: materiais.isEmpty
+              child: materiaisGlobais.isEmpty
 
                   ? const Center(
                       child: Text(
@@ -166,12 +235,14 @@ class _MateriaisScreenState
 
                   : ListView.builder(
 
-                      itemCount: materiais.length,
+                      itemCount:
+                          materiaisGlobais.length,
 
-                      itemBuilder: (context, index) {
+                      itemBuilder:
+                          (context, index) {
 
                         final material =
-                            materiais[index];
+                            materiaisGlobais[index];
 
                         return Card(
 
@@ -182,7 +253,8 @@ class _MateriaisScreenState
 
                           child: ListTile(
 
-                            leading: const CircleAvatar(
+                            leading:
+                                const CircleAvatar(
                               backgroundColor:
                                   Colors.green,
 
@@ -214,22 +286,40 @@ class _MateriaisScreenState
                               ],
                             ),
 
-                            trailing: IconButton(
+                            trailing: Row(
+                              mainAxisSize:
+                                  MainAxisSize.min,
 
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Colors.red,
-                              ),
+                              children: [
 
-                              onPressed: () {
+                                IconButton(
 
-                                setState(() {
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.blue,
+                                  ),
 
-                                  materiais.removeAt(
-                                    index,
-                                  );
-                                });
-                              },
+                                  onPressed: () {
+                                    editarMaterial(
+                                      index,
+                                    );
+                                  },
+                                ),
+
+                                IconButton(
+
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+
+                                  onPressed: () {
+                                    excluirMaterial(
+                                      index,
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         );

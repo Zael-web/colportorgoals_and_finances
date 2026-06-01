@@ -46,6 +46,7 @@ class _MetasScreenState extends State<MetasScreen> {
 
       setState(() {
         metaBolsa = metaSalva;
+        metaBolsaGlobal = metaSalva;
       });
     }
   }
@@ -131,9 +132,9 @@ class _MetasScreenState extends State<MetasScreen> {
 
                     metaBolsa =
                         double.tryParse(
-                              metaController.text,
-                            ) ??
+                              metaController.text,) ??
                             metaBolsa;
+                    metaBolsaGlobal = metaBolsa;
                   });
 
                   salvarMeta();

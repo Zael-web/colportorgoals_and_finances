@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'registro_screen.dart';
 import 'metas_screen.dart';
-import 'calculadora_screen.dart';
+
 import 'materiais_screen.dart';
 import '../data/app_data.dart';
 import 'planejamento_screen.dart';
@@ -29,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
 
     const MetasScreen(),
-    const CalculadoraScreen(),
     const MateriaisScreen(),
     const PlanejamentoScreen(),
   ];
@@ -71,12 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.flag),
             label: 'Metas',
           ),
-
-          NavigationDestination(
-            icon: Icon(Icons.calculate),
-            label: 'Calculadora',
-          ),
-
+          
           NavigationDestination(
             icon: Icon(Icons.menu_book),
             label: 'Materiais',
@@ -140,7 +134,9 @@ class _DashboardPageState
   @override
   Widget build(BuildContext context) {
 
-    double progresso = 45;
+    double progresso = metaBolsaGlobal == 0
+        ? 0
+        : (totalComprado() / metaBolsaGlobal * 100);
 
     return Scaffold(
 
@@ -217,8 +213,8 @@ class _DashboardPageState
 
                   const SizedBox(height: 12),
 
-                  const Text(
-                    'R\$ 18.000',
+                  Text(
+                    'R\$ ${metaBolsaGlobal.toStringAsFixed(2)}',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 32,
@@ -242,6 +238,39 @@ class _DashboardPageState
                       color: Colors.white,
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Falta: R\$ ${faltaParaBolsa().toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                    Text(
+                      'Dias restantes: ${diasRestantes()}',
+                        style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                     const SizedBox(height: 8),
+                                      Text(
+                     'Meta diária: R\$ ${metaDiariaNecessaria().toStringAsFixed(2)}',
+                      style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                     ),
+                   ),
+                   const SizedBox(height: 8),
+                    Text(
+                      'totalComprado: R\$ ${totalComprado().toStringAsFixed(2)}',
+                      style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                     ),
+                   ),
+                   
                 ],
               ),
             ),
