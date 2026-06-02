@@ -80,7 +80,7 @@ class _MetasScreenState extends State<MetasScreen> {
 
       appBar: AppBar(
         title: const Text('Metas'),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.blue,
       ),
 
       body: Padding(
@@ -123,7 +123,7 @@ class _MetasScreenState extends State<MetasScreen> {
               child: ElevatedButton(
 
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.blue,
                 ),
 
                 onPressed: () {
@@ -159,7 +159,7 @@ class _MetasScreenState extends State<MetasScreen> {
               padding: const EdgeInsets.all(20),
 
               decoration: BoxDecoration(
-                color: Colors.green.shade700,
+                color: Colors.blue.shade700,
                 borderRadius: BorderRadius.circular(20),
               ),
 

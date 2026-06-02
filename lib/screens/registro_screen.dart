@@ -110,7 +110,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
       appBar: AppBar(
         title: const Text('Registro Diário'),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.blue,
       ),
 
       body: Padding(
@@ -184,7 +184,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                       onPressed: salvarRegistro,
 
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor: Colors.blue,
                       ),
 
                       child: const Text(
@@ -232,7 +232,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                       child: ListTile(
 
                         leading: const CircleAvatar(
-                          backgroundColor: Colors.green,
+                          backgroundColor: Colors.blue,
 
                           child: Icon(
                             Icons.book,

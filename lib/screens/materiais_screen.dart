@@ -136,7 +136,7 @@ class _MateriaisScreenState
 
       appBar: AppBar(
         title: const Text('Materiais'),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.blue,
       ),
 
       body: Padding(
@@ -191,7 +191,7 @@ class _MateriaisScreenState
                 onPressed: adicionarMaterial,
 
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.blue,
                 ),
 
                 child: Text(
@@ -256,7 +256,7 @@ class _MateriaisScreenState
                             leading:
                                 const CircleAvatar(
                               backgroundColor:
-                                  Colors.green,
+                                  Colors.blue,
 
                               child: Icon(
                                 Icons.menu_book,

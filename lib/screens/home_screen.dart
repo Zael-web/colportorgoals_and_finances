@@ -179,7 +179,7 @@ class _DashboardPageState
               padding: const EdgeInsets.all(20),
 
               decoration: BoxDecoration(
-                color: Colors.green.shade700,
+                color: Colors.blue.shade700,
                 borderRadius: BorderRadius.circular(20),
               ),
 
@@ -295,7 +295,7 @@ class _DashboardPageState
                     titulo: 'Vendido',
                     valor:
                         'R\$ ${totalVendido().toStringAsFixed(2)}',
-                    cor: Colors.green,
+                    cor: Colors.blue,
                     icone: Icons.attach_money,
                   ),
                 ),
@@ -499,7 +499,7 @@ class _DashboardPageState
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.green,
+              color: Colors.blue,
             ),
           ),
         ],

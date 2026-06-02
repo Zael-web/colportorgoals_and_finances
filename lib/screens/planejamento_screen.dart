@@ -198,7 +198,7 @@ class _PlanejamentoScreenState
           'Planejamento',
         ),
         backgroundColor:
-            Colors.green,
+            Colors.blue,
       ),
 
       body: SingleChildScrollView(
@@ -324,7 +324,7 @@ class _PlanejamentoScreenState
               icone:
                   Icons.flag,
               cor:
-                  Colors.green,
+                  Colors.blue,
             ),
 
             infoCard(

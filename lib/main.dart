@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
       title: 'Colportor App',
 
       theme: ThemeData(
-        primarySwatch: Colors.green,
+        primarySwatch: Colors.blue,
       ),
 
       home: const HomeScreen(),
