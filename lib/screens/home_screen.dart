@@ -16,6 +16,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
 
+  void atualizarMetaBolsa() {
+    setState(() {});
+  }
+
   int paginaAtual = 0;
 
   List<Widget> get paginas => [
@@ -28,9 +32,13 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     ),
 
-    const MetasScreen(),
+    MetasScreen(
+      onMetaChanged: atualizarMetaBolsa,
+    ),
     const MateriaisScreen(),
-    const PlanejamentoScreen(),
+    PlanejamentoScreen(
+      onMetaChanged: atualizarMetaBolsa,
+    ),
   ];
 
   @override
@@ -189,7 +197,7 @@ class _DashboardPageState
 
                 children: [
 
-                  const Row(
+                  Row(
 
                     mainAxisAlignment:
                         MainAxisAlignment.spaceBetween,
@@ -204,7 +212,7 @@ class _DashboardPageState
                         ),
                       ),
 
-                      Icon(
+                      const Icon(
                         Icons.emoji_events,
                         color: Colors.white,
                       ),

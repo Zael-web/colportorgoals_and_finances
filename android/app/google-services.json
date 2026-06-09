@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "878895227518",
+    "project_id": "colportorgoals-and-finances",
+    "storage_bucket": "colportorgoals-and-finances.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:878895227518:android:4205ad68a8c27aaf176e2f",
+        "android_client_info": {
+          "package_name": "com.example.meu_primeiro_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKesyBM3lYv5OrxSfAZdRDnRciyHE2ifA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

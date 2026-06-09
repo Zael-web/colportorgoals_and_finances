@@ -1,223 +1,322 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/app_data.dart';
 
 class MetasScreen extends StatefulWidget {
-  const MetasScreen({super.key});
+  const MetasScreen({super.key, this.onMetaChanged});
+
+  final VoidCallback? onMetaChanged;
 
   @override
   State<MetasScreen> createState() => _MetasScreenState();
 }
 
 class _MetasScreenState extends State<MetasScreen> {
-
   final TextEditingController metaController =
       TextEditingController();
-
-  double metaBolsa = 18000;
 
   @override
   void initState() {
     super.initState();
-    carregarMeta();
+    metaController.text =
+        metaBolsaGlobal.toStringAsFixed(0);
   }
 
-  Future<void> salvarMeta() async {
+  @override
+  void dispose() {
+    metaController.dispose();
+    super.dispose();
+  }
 
-    final prefs =
-        await SharedPreferences.getInstance();
+  Future<void> abrirAcoesDaMeta() async {
+    metaController.text =
+        metaBolsaGlobal.toStringAsFixed(0);
 
-    await prefs.setDouble(
-      'metaBolsa',
-      metaBolsa,
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Editar Meta da Bolsa',
+          ),
+          content: TextField(
+            controller: metaController,
+            keyboardType:
+                TextInputType.number,
+            decoration:
+                const InputDecoration(
+              labelText:
+                  'Novo valor da meta',
+              border:
+                  OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'Cancelar',
+              ),
+            ),
+
+            OutlinedButton(
+              onPressed: () async {
+                await excluirPlanejamento();
+
+                if (!mounted) return;
+
+                setState(() {
+                  metaController.text =
+                      metaBolsaGlobal
+                          .toStringAsFixed(
+                    0,
+                  );
+                });
+
+                Navigator.pop(context);
+
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Planejamento resetado!',
+                    ),
+                  ),
+                );
+              },
+              child: const Text(
+                'Excluir',
+              ),
+            ),
+
+            ElevatedButton(
+              onPressed: () async {
+                double? valor =
+                    double.tryParse(
+                  metaController.text,
+                );
+
+                if (valor == null ||
+                    valor <= 0) {
+                  return;
+                }
+
+                metaBolsaGlobal =
+                    valor;
+
+                await salvarPlanejamento();
+
+                if (!mounted) return;
+
+                setState(() {});
+
+                Navigator.pop(context);
+
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Meta atualizada!',
+                    ),
+                  ),
+                );
+              },
+              child: const Text(
+                'Salvar',
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Future<void> carregarMeta() async {
-
-    final prefs =
-        await SharedPreferences.getInstance();
-
-    double? metaSalva =
-        prefs.getDouble('metaBolsa');
-
-    if (metaSalva != null) {
-
-      setState(() {
-        metaBolsa = metaSalva;
-        metaBolsaGlobal = metaSalva;
-      });
-    }
-  }
-
   double totalVendido() {
-
-    double total = 0;
-
-    for (var registro in registrosGlobais) {
-      total += registro.vendido;
-    }
-
-    return total;
+    return totalVendidoGlobal();
   }
 
   double progresso() {
+    if (metaBolsaGlobal <= 0) {
+      return 0;
+    }
 
-    if (metaBolsa == 0) return 0;
+    double valor =
+        totalVendido() /
+            metaBolsaGlobal;
 
-    return totalVendido() / metaBolsa;
+    if (valor > 1) {
+      return 1;
+    }
+
+    return valor;
   }
 
   double falta() {
-    return metaBolsa - totalVendido();
+    double valor =
+        metaBolsaGlobal -
+            totalVendido();
+
+    if (valor < 0) {
+      return 0;
+    }
+
+    return valor;
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       appBar: AppBar(
-        title: const Text('Metas'),
+        title: const Text(
+          'Metas',
+        ),
         backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+            onPressed:
+                abrirAcoesDaMeta,
+            icon:
+                const Icon(Icons.edit),
+          ),
+        ],
       ),
-
       body: Padding(
-
-        padding: const EdgeInsets.all(16),
-
+        padding:
+            const EdgeInsets.all(16),
         child: Column(
-
           crossAxisAlignment:
               CrossAxisAlignment.start,
-
           children: [
-
             const Text(
               'Meta da Bolsa',
               style: TextStyle(
                 fontSize: 22,
-                fontWeight: FontWeight.bold,
+                fontWeight:
+                    FontWeight.bold,
               ),
             ),
 
-            const SizedBox(height: 20),
-
-            TextField(
-              controller: metaController,
-              keyboardType: TextInputType.number,
-
-              decoration: const InputDecoration(
-                labelText: 'Digite sua meta',
-                border: OutlineInputBorder(),
-              ),
+            const SizedBox(
+              height: 20,
             ),
-
-            const SizedBox(height: 16),
-
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-
-              child: ElevatedButton(
-
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                ),
-
-                onPressed: () {
-
-                  setState(() {
-
-                    metaBolsa =
-                        double.tryParse(
-                              metaController.text,) ??
-                            metaBolsa;
-                    metaBolsaGlobal = metaBolsa;
-                  });
-
-                  salvarMeta();
-
-                  metaController.clear();
-                },
-
-                child: const Text(
-                  'Salvar Meta',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 30),
 
             Container(
-
-              padding: const EdgeInsets.all(20),
-
-              decoration: BoxDecoration(
-                color: Colors.blue.shade700,
-                borderRadius: BorderRadius.circular(20),
+              width: double.infinity,
+              padding:
+                  const EdgeInsets.all(
+                20,
               ),
-
+              decoration:
+                  BoxDecoration(
+                color:
+                    Colors.blue.shade700,
+                borderRadius:
+                    BorderRadius.circular(
+                  20,
+                ),
+              ),
               child: Column(
-
                 crossAxisAlignment:
-                    CrossAxisAlignment.start,
-
+                    CrossAxisAlignment
+                        .start,
                 children: [
-
                   Text(
-                    'Meta: R\$ ${metaBolsa.toStringAsFixed(2)}',
-
-                    style: const TextStyle(
-                      color: Colors.white,
+                    'Meta: R\$ ${metaBolsaGlobal.toStringAsFixed(2)}',
+                    style:
+                        const TextStyle(
+                      color:
+                          Colors.white,
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight:
+                          FontWeight
+                              .bold,
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(
+                    height: 20,
+                  ),
 
                   LinearProgressIndicator(
                     value: progresso(),
                     minHeight: 12,
                     borderRadius:
-                        BorderRadius.circular(20),
+                        BorderRadius
+                            .circular(
+                      20,
+                    ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(
+                    height: 20,
+                  ),
 
                   Text(
                     'Vendido: R\$ ${totalVendido().toStringAsFixed(2)}',
-
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style:
+                        const TextStyle(
+                      color:
+                          Colors.white,
                       fontSize: 18,
                     ),
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(
+                    height: 10,
+                  ),
 
                   Text(
                     'Falta: R\$ ${falta().toStringAsFixed(2)}',
-
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style:
+                        const TextStyle(
+                      color:
+                          Colors.white,
                       fontSize: 18,
                     ),
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(
+                    height: 10,
+                  ),
 
                   Text(
                     '${(progresso() * 100).toStringAsFixed(1)}% concluído',
+                    style:
+                        const TextStyle(
+                      color:
+                          Colors.white,
+                      fontSize: 18,
+                    ),
+                  ),
 
-                    style: const TextStyle(
-                      color: Colors.white,
+                  const SizedBox(
+                    height: 10,
+                  ),
+
+                  Text(
+                    'Meta diária: R\$ ${metaDiariaNecessaria().toStringAsFixed(2)}',
+                    style:
+                        const TextStyle(
+                      color:
+                          Colors.white,
+                      fontSize: 18,
+                    ),
+                  ),
+
+                  const SizedBox(
+                    height: 10,
+                  ),
+
+                  Text(
+                    'Dias restantes: ${diasRestantes()}',
+                    style:
+                        const TextStyle(
+                      color:
+                          Colors.white,
                       fontSize: 18,
                     ),
                   ),

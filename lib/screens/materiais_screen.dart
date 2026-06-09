@@ -1,330 +1,340 @@
 import 'package:flutter/material.dart';
-import '../models/material_model.dart';
+
 import '../data/app_data.dart';
+import '../models/material_model.dart';
+import '../services/firestore_service.dart';
 
 class MateriaisScreen extends StatefulWidget {
   const MateriaisScreen({super.key});
 
   @override
-  State<MateriaisScreen> createState() =>
-      _MateriaisScreenState();
+  State<MateriaisScreen> createState() => _MateriaisScreenState();
 }
 
-class _MateriaisScreenState
-    extends State<MateriaisScreen> {
+class _MateriaisScreenState extends State<MateriaisScreen> {
+  final FirestoreService _firestoreService = FirestoreService();
+  final TextEditingController buscaController = TextEditingController();
 
-  final TextEditingController nomeController =
-      TextEditingController();
-
-  final TextEditingController compraController =
-      TextEditingController();
-
-  final TextEditingController vendaController =
-      TextEditingController();
-
-  int? editandoIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    carregar();
-  }
-
-  Future<void> carregar() async {
-    await carregarMateriaisGlobais();
-    setState(() {});
-  }
-
-  void adicionarMaterial() async {
-
-    String nome = nomeController.text.trim();
-
-    double compra =
-        double.tryParse(compraController.text) ?? 0;
-
-    double venda =
-        double.tryParse(vendaController.text) ?? 0;
-
-    if (nome.isEmpty || compra == 0 || venda == 0) {
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Preencha todos os campos',
-          ),
-        ),
-      );
-
-      return;
-    }
-
-    setState(() {
-
-      if (editandoIndex != null) {
-
-        materiaisGlobais[editandoIndex!] =
-            MaterialModel(
-          nome: nome,
-          valorCompra: compra,
-          valorVenda: venda,
-        );
-
-        editandoIndex = null;
-
-      } else {
-
-        materiaisGlobais.add(
-          MaterialModel(
-            nome: nome,
-            valorCompra: compra,
-            valorVenda: venda,
-          ),
-        );
-      }
-    });
-
-    await salvarMateriaisGlobais();
-
-    nomeController.clear();
-    compraController.clear();
-    vendaController.clear();
-  }
-
-  void editarMaterial(int index) {
-
-    final material =
-        materiaisGlobais[index];
-
-    nomeController.text =
-        material.nome;
-
-    compraController.text =
-        material.valorCompra.toString();
-
-    vendaController.text =
-        material.valorVenda.toString();
-
-    editandoIndex = index;
-
-    setState(() {});
-  }
-
-  Future<void> excluirMaterial(
-      int index) async {
-
-    setState(() {
-      materiaisGlobais.removeAt(index);
-    });
-
-    await salvarMateriaisGlobais();
-  }
+  String busca = '';
 
   @override
   void dispose() {
-
-    nomeController.dispose();
-    compraController.dispose();
-    vendaController.dispose();
-
+    buscaController.dispose();
     super.dispose();
+  }
+
+  double _parseValor(String texto) {
+    return double.tryParse(texto.trim().replaceAll(',', '.')) ?? 0.0;
+  }
+
+  Future<void> _abrirFormulario({MaterialModel? material}) async {
+    final nomeController = TextEditingController(text: material?.nome ?? '');
+    final compraController = TextEditingController(
+      text: material?.valorCompra.toStringAsFixed(2) ?? '',
+    );
+    final vendaController = TextEditingController(
+      text: material?.valorVenda.toStringAsFixed(2) ?? '',
+    );
+    final formKey = GlobalKey<FormState>();
+
+    try {
+      final confirmou = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: Text(material == null ? 'Novo material' : 'Editar material'),
+            content: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: nomeController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nome',
+                        border: OutlineInputBorder(),
+                      ),
+                      textCapitalization: TextCapitalization.words,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Informe o nome do material';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: compraController,
+                      decoration: const InputDecoration(
+                        labelText: 'Valor de compra',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (_parseValor(value ?? '') <= 0) {
+                          return 'Informe um valor válido';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: vendaController,
+                      decoration: const InputDecoration(
+                        labelText: 'Valor de venda',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (_parseValor(value ?? '') <= 0) {
+                          return 'Informe um valor válido';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  if (formKey.currentState?.validate() ?? false) {
+                    Navigator.of(dialogContext).pop(true);
+                  }
+                },
+                child: const Text('Salvar'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirmou != true) {
+        return;
+      }
+
+      final materialSalvo = MaterialModel(
+        id: material?.id,
+        nome: nomeController.text.trim(),
+        valorCompra: _parseValor(compraController.text),
+        valorVenda: _parseValor(vendaController.text),
+      );
+
+      if (materialSalvo.id == null) {
+        await _firestoreService.adicionarMaterial(materialSalvo);
+      } else {
+        await _firestoreService.atualizarMaterial(materialSalvo);
+      }
+
+      await carregarMateriaisGlobais();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            material == null
+                ? 'Material adicionado com sucesso'
+                : 'Material atualizado com sucesso',
+          ),
+        ),
+      );
+    } finally {
+      nomeController.dispose();
+      compraController.dispose();
+      vendaController.dispose();
+    }
+  }
+
+  Future<void> _confirmarExclusao(MaterialModel material) async {
+    final confirmou = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Excluir material'),
+          content: Text('Deseja excluir "${material.nome}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton.tonal(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmou != true || material.id == null) {
+      return;
+    }
+
+    await _firestoreService.excluirMaterial(material.id!);
+    await carregarMateriaisGlobais();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {});
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Material excluído com sucesso')),
+    );
+  }
+
+  Widget _materialCard(MaterialModel material) {
+    return Card(
+      elevation: 2,
+      child: ListTile(
+        leading: const CircleAvatar(
+          backgroundColor: Colors.blue,
+          child: Icon(Icons.menu_book, color: Colors.white),
+        ),
+        title: Text(
+          material.nome,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Compra: R\$ ${material.valorCompra.toStringAsFixed(2)}'),
+              Text('Venda: R\$ ${material.valorVenda.toStringAsFixed(2)}'),
+            ],
+          ),
+        ),
+        trailing: PopupMenuButton<String>(
+          onSelected: (value) {
+            if (value == 'editar') {
+              _abrirFormulario(material: material);
+            }
+
+            if (value == 'excluir') {
+              _confirmarExclusao(material);
+            }
+          },
+          itemBuilder: (context) => const [
+            PopupMenuItem(
+              value: 'editar',
+              child: Text('Editar'),
+            ),
+            PopupMenuItem(
+              value: 'excluir',
+              child: Text('Excluir'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       appBar: AppBar(
         title: const Text('Materiais'),
-        backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+            onPressed: () => _abrirFormulario(),
+            icon: const Icon(Icons.add),
+            tooltip: 'Adicionar material',
+          ),
+        ],
       ),
-
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _abrirFormulario(),
+        icon: const Icon(Icons.add),
+        label: const Text('Novo material'),
+      ),
       body: Padding(
-
         padding: const EdgeInsets.all(16),
-
         child: Column(
-
           children: [
-
             TextField(
-              controller: nomeController,
-
-              decoration: const InputDecoration(
-                labelText: 'Nome do Material',
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            TextField(
-              controller: compraController,
-              keyboardType: TextInputType.number,
-
-              decoration: const InputDecoration(
-                labelText: 'Valor de Compra',
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            TextField(
-              controller: vendaController,
-              keyboardType: TextInputType.number,
-
-              decoration: const InputDecoration(
-                labelText: 'Valor de Venda',
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-
-              child: ElevatedButton(
-
-                onPressed: adicionarMaterial,
-
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                ),
-
-                child: Text(
-                  editandoIndex == null
-                      ? 'Adicionar Material'
-                      : 'Salvar Alteração',
-
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            const Align(
-              alignment: Alignment.centerLeft,
-
-              child: Text(
-                'Tabela de Materiais',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            Expanded(
-
-              child: materiaisGlobais.isEmpty
-
-                  ? const Center(
-                      child: Text(
-                        'Nenhum material cadastrado',
+              controller: buscaController,
+              decoration: InputDecoration(
+                labelText: 'Pesquisar material',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: busca.isEmpty
+                    ? null
+                    : IconButton(
+                        onPressed: () {
+                          buscaController.clear();
+                          setState(() {
+                            busca = '';
+                          });
+                        },
+                        icon: const Icon(Icons.clear),
                       ),
-                    )
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (valor) {
+                setState(() {
+                  busca = valor;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: StreamBuilder<List<MaterialModel>>(
+                stream: _firestoreService.listarMateriais(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Erro ao carregar materiais: ${snapshot.error}',
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
 
-                  : ListView.builder(
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
 
-                      itemCount:
-                          materiaisGlobais.length,
+                  final materiais = snapshot.data ?? [];
+                  final materiaisFiltrados = materiais.where((material) {
+                    return material.nome.toLowerCase().contains(busca.toLowerCase());
+                  }).toList();
 
-                      itemBuilder:
-                          (context, index) {
+                  if (materiaisFiltrados.isEmpty) {
+                    return Center(
+                      child: Text(
+                        busca.isEmpty
+                            ? 'Nenhum material cadastrado.'
+                            : 'Nenhum material encontrado para "$busca".',
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
 
-                        final material =
-                            materiaisGlobais[index];
-
-                        return Card(
-
-                          margin:
-                              const EdgeInsets.only(
-                            bottom: 12,
-                          ),
-
-                          child: ListTile(
-
-                            leading:
-                                const CircleAvatar(
-                              backgroundColor:
-                                  Colors.blue,
-
-                              child: Icon(
-                                Icons.menu_book,
-                                color: Colors.white,
-                              ),
-                            ),
-
-                            title: Text(
-                              material.nome,
-                            ),
-
-                            subtitle: Column(
-
-                              crossAxisAlignment:
-                                  CrossAxisAlignment
-                                      .start,
-
-                              children: [
-
-                                Text(
-                                  'Compra: R\$ ${material.valorCompra.toStringAsFixed(2)}',
-                                ),
-
-                                Text(
-                                  'Venda: R\$ ${material.valorVenda.toStringAsFixed(2)}',
-                                ),
-                              ],
-                            ),
-
-                            trailing: Row(
-                              mainAxisSize:
-                                  MainAxisSize.min,
-
-                              children: [
-
-                                IconButton(
-
-                                  icon: const Icon(
-                                    Icons.edit,
-                                    color: Colors.blue,
-                                  ),
-
-                                  onPressed: () {
-                                    editarMaterial(
-                                      index,
-                                    );
-                                  },
-                                ),
-
-                                IconButton(
-
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    color: Colors.red,
-                                  ),
-
-                                  onPressed: () {
-                                    excluirMaterial(
-                                      index,
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                  return ListView.separated(
+                    itemCount: materiaisFiltrados.length,
+                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      return _materialCard(materiaisFiltrados[index]);
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
