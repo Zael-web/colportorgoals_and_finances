@@ -8,19 +8,15 @@ class PlanejamentoScreen extends StatefulWidget {
   final VoidCallback? onMetaChanged;
 
   @override
-  State<PlanejamentoScreen> createState() =>
-      _PlanejamentoScreenState();
+  State<PlanejamentoScreen> createState() => _PlanejamentoScreenState();
 }
 
 class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
-  final TextEditingController metaController =
-      TextEditingController();
+  final TextEditingController metaController = TextEditingController();
 
   DateTime dataInicio = DateTime.now();
 
-  DateTime dataFim = DateTime.now().add(
-    const Duration(days: 30),
-  );
+  DateTime dataFim = DateTime.now().add(const Duration(days: 30));
 
   @override
   void initState() {
@@ -62,11 +58,9 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Planejamento salvo!'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Planejamento salvo!')));
   }
 
   double totalComprado() {
@@ -141,11 +135,9 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
 
     widget.onMetaChanged?.call();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Planejamento excluído!'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Planejamento excluído!')));
   }
 
   Widget infoCard({
@@ -159,18 +151,12 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: cor,
-          child: Icon(
-            icone,
-            color: Colors.white,
-          ),
+          child: Icon(icone, color: Colors.white),
         ),
         title: Text(titulo),
         subtitle: Text(
           valor,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -207,9 +193,7 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 onPressed: resetarPlanejamento,
                 child: const Text(
                   'Excluir Planejamento',
@@ -263,14 +247,9 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
               cor: Colors.purple,
             ),
             const SizedBox(height: 20),
-            LinearProgressIndicator(
-              value: progresso(),
-              minHeight: 14,
-            ),
+            LinearProgressIndicator(value: progresso(), minHeight: 14),
             const SizedBox(height: 10),
-            Text(
-              '${(progresso() * 100).toStringAsFixed(1)}% concluído',
-            ),
+            Text('${(progresso() * 100).toStringAsFixed(1)}% concluído'),
           ],
         ),
       ),

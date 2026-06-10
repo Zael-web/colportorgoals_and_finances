@@ -12,14 +12,12 @@ class MetasScreen extends StatefulWidget {
 }
 
 class _MetasScreenState extends State<MetasScreen> {
-  final TextEditingController metaController =
-      TextEditingController();
+  final TextEditingController metaController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    metaController.text =
-        metaBolsaGlobal.toStringAsFixed(0);
+    metaController.text = metaBolsaGlobal.toStringAsFixed(0);
   }
 
   @override
@@ -29,26 +27,19 @@ class _MetasScreenState extends State<MetasScreen> {
   }
 
   Future<void> abrirAcoesDaMeta() async {
-    metaController.text =
-        metaBolsaGlobal.toStringAsFixed(0);
+    metaController.text = metaBolsaGlobal.toStringAsFixed(0);
 
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text(
-            'Editar Meta da Bolsa',
-          ),
+          title: const Text('Editar Meta da Bolsa'),
           content: TextField(
             controller: metaController,
-            keyboardType:
-                TextInputType.number,
-            decoration:
-                const InputDecoration(
-              labelText:
-                  'Novo valor da meta',
-              border:
-                  OutlineInputBorder(),
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Novo valor da meta',
+              border: OutlineInputBorder(),
             ),
           ),
           actions: [
@@ -56,9 +47,7 @@ class _MetasScreenState extends State<MetasScreen> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text(
-                'Cancelar',
-              ),
+              child: const Text('Cancelar'),
             ),
 
             OutlinedButton(
@@ -68,44 +57,27 @@ class _MetasScreenState extends State<MetasScreen> {
                 if (!mounted) return;
 
                 setState(() {
-                  metaController.text =
-                      metaBolsaGlobal
-                          .toStringAsFixed(
-                    0,
-                  );
+                  metaController.text = metaBolsaGlobal.toStringAsFixed(0);
                 });
 
                 Navigator.pop(context);
 
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Planejamento resetado!',
-                    ),
-                  ),
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Planejamento resetado!')),
                 );
               },
-              child: const Text(
-                'Excluir',
-              ),
+              child: const Text('Excluir'),
             ),
 
             ElevatedButton(
               onPressed: () async {
-                double? valor =
-                    double.tryParse(
-                  metaController.text,
-                );
+                double? valor = double.tryParse(metaController.text);
 
-                if (valor == null ||
-                    valor <= 0) {
+                if (valor == null || valor <= 0) {
                   return;
                 }
 
-                metaBolsaGlobal =
-                    valor;
+                metaBolsaGlobal = valor;
 
                 await salvarPlanejamento();
 
@@ -115,19 +87,11 @@ class _MetasScreenState extends State<MetasScreen> {
 
                 Navigator.pop(context);
 
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Meta atualizada!',
-                    ),
-                  ),
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Meta atualizada!')),
                 );
               },
-              child: const Text(
-                'Salvar',
-              ),
+              child: const Text('Salvar'),
             ),
           ],
         );
@@ -144,9 +108,7 @@ class _MetasScreenState extends State<MetasScreen> {
       return 0;
     }
 
-    double valor =
-        totalVendido() /
-            metaBolsaGlobal;
+    double valor = totalVendido() / metaBolsaGlobal;
 
     if (valor > 1) {
       return 1;
@@ -156,9 +118,7 @@ class _MetasScreenState extends State<MetasScreen> {
   }
 
   double falta() {
-    double valor =
-        metaBolsaGlobal -
-            totalVendido();
+    double valor = metaBolsaGlobal - totalVendido();
 
     if (valor < 0) {
       return 0;
@@ -171,154 +131,84 @@ class _MetasScreenState extends State<MetasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Metas',
-        ),
-        backgroundColor: Colors.blue,
+        title: const Text('Metas'),
+        backgroundColor: const Color.fromARGB(255, 11, 41, 77),
         actions: [
-          IconButton(
-            onPressed:
-                abrirAcoesDaMeta,
-            icon:
-                const Icon(Icons.edit),
-          ),
+          IconButton(onPressed: abrirAcoesDaMeta, icon: const Icon(Icons.edit)),
         ],
       ),
       body: Padding(
-        padding:
-            const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Meta da Bolsa',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight:
-                    FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
-            const SizedBox(
-              height: 20,
-            ),
+            const SizedBox(height: 20),
 
             Container(
               width: double.infinity,
-              padding:
-                  const EdgeInsets.all(
-                20,
-              ),
-              decoration:
-                  BoxDecoration(
-                color:
-                    Colors.blue.shade700,
-                borderRadius:
-                    BorderRadius.circular(
-                  20,
-                ),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 11, 41, 77),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment
-                        .start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Meta: R\$ ${metaBolsaGlobal.toStringAsFixed(2)}',
-                    style:
-                        const TextStyle(
-                      color:
-                          Colors.white,
+                    style: const TextStyle(
+                      color: Colors.white,
                       fontSize: 24,
-                      fontWeight:
-                          FontWeight
-                              .bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
 
                   LinearProgressIndicator(
                     value: progresso(),
                     minHeight: 12,
-                    borderRadius:
-                        BorderRadius
-                            .circular(
-                      20,
-                    ),
+                    borderRadius: BorderRadius.circular(20),
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
 
                   Text(
                     'Vendido: R\$ ${totalVendido().toStringAsFixed(2)}',
-                    style:
-                        const TextStyle(
-                      color:
-                          Colors.white,
-                      fontSize: 18,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 18),
                   ),
 
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
 
                   Text(
                     'Falta: R\$ ${falta().toStringAsFixed(2)}',
-                    style:
-                        const TextStyle(
-                      color:
-                          Colors.white,
-                      fontSize: 18,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 18),
                   ),
 
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
 
                   Text(
                     '${(progresso() * 100).toStringAsFixed(1)}% concluído',
-                    style:
-                        const TextStyle(
-                      color:
-                          Colors.white,
-                      fontSize: 18,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 18),
                   ),
 
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
 
                   Text(
                     'Meta diária: R\$ ${metaDiariaNecessaria().toStringAsFixed(2)}',
-                    style:
-                        const TextStyle(
-                      color:
-                          Colors.white,
-                      fontSize: 18,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 18),
                   ),
 
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
 
                   Text(
                     'Dias restantes: ${diasRestantes()}',
-                    style:
-                        const TextStyle(
-                      color:
-                          Colors.white,
-                      fontSize: 18,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ],
               ),

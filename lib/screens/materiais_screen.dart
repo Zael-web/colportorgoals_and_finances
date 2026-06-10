@@ -70,7 +70,9 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
                         labelText: 'Valor de compra',
                         border: OutlineInputBorder(),
                       ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       validator: (value) {
                         if (_parseValor(value ?? '') <= 0) {
                           return 'Informe um valor válido';
@@ -85,7 +87,9 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
                         labelText: 'Valor de venda',
                         border: OutlineInputBorder(),
                       ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       validator: (value) {
                         if (_parseValor(value ?? '') <= 0) {
                           return 'Informe um valor válido';
@@ -230,14 +234,8 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
             }
           },
           itemBuilder: (context) => const [
-            PopupMenuItem(
-              value: 'editar',
-              child: Text('Editar'),
-            ),
-            PopupMenuItem(
-              value: 'excluir',
-              child: Text('Excluir'),
-            ),
+            PopupMenuItem(value: 'editar', child: Text('Editar')),
+            PopupMenuItem(value: 'excluir', child: Text('Excluir')),
           ],
         ),
       ),
@@ -305,14 +303,14 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
                   }
 
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   final materiais = snapshot.data ?? [];
                   final materiaisFiltrados = materiais.where((material) {
-                    return material.nome.toLowerCase().contains(busca.toLowerCase());
+                    return material.nome.toLowerCase().contains(
+                      busca.toLowerCase(),
+                    );
                   }).toList();
 
                   if (materiaisFiltrados.isEmpty) {
@@ -328,7 +326,8 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
 
                   return ListView.separated(
                     itemCount: materiaisFiltrados.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       return _materialCard(materiaisFiltrados[index]);
                     },

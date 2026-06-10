@@ -7,10 +7,7 @@ import '../models/registro.dart';
 class RegistroScreen extends StatefulWidget {
   final VoidCallback atualizarHome;
 
-  const RegistroScreen({
-    super.key,
-    required this.atualizarHome,
-  });
+  const RegistroScreen({super.key, required this.atualizarHome});
 
   @override
   State<RegistroScreen> createState() => _RegistroScreenState();
@@ -71,25 +68,20 @@ class _RegistroScreenState extends State<RegistroScreen> {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-  int get quantidadeDigitada =>
-      int.tryParse(quantidadeController.text) ?? 0;
+  int get quantidadeDigitada => int.tryParse(quantidadeController.text) ?? 0;
 
   double get valorCompraUnitario => materialSelecionado?.valorCompra ?? 0;
 
   double get valorVendaUnitario => materialSelecionado?.valorVenda ?? 0;
 
-  double get valorCompradoCalculado =>
-      valorCompraUnitario * quantidadeDigitada;
+  double get valorCompradoCalculado => valorCompraUnitario * quantidadeDigitada;
 
-  double get valorVendidoCalculado =>
-      valorVendaUnitario * quantidadeDigitada;
+  double get valorVendidoCalculado => valorVendaUnitario * quantidadeDigitada;
 
   double get dizimoCalculado => valorVendidoCalculado * 0.10;
 
   double get taxaCartaoCalculada =>
-      formaPagamentoSelecionada == 'Cartão'
-          ? valorVendidoCalculado * 0.03
-          : 0;
+      formaPagamentoSelecionada == 'Cartão' ? valorVendidoCalculado * 0.03 : 0;
 
   double get valorLiquidoCalculado =>
       valorVendidoCalculado - dizimoCalculado - taxaCartaoCalculada;
@@ -130,7 +122,9 @@ class _RegistroScreenState extends State<RegistroScreen> {
   int get diasComRegistro {
     final dias = <String>{};
     for (final registro in registrosGlobais) {
-      dias.add('${registro.data.year}-${registro.data.month}-${registro.data.day}');
+      dias.add(
+        '${registro.data.year}-${registro.data.month}-${registro.data.day}',
+      );
     }
     return dias.isEmpty ? 1 : dias.length;
   }
@@ -248,9 +242,9 @@ class _RegistroScreenState extends State<RegistroScreen> {
     final observacao = observacaoController.text.trim();
 
     if (materialSelecionadoNome == null || material == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione um material!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Selecione um material!')));
       return;
     }
 
@@ -328,7 +322,9 @@ class _RegistroScreenState extends State<RegistroScreen> {
     }
 
     if (materialSelecionadoNome != null &&
-        materiaisGlobais.where((m) => m.nome == materialSelecionadoNome).isEmpty) {
+        materiaisGlobais
+            .where((m) => m.nome == materialSelecionadoNome)
+            .isEmpty) {
       itens.insert(
         0,
         DropdownMenuItem<String>(
@@ -369,11 +365,11 @@ class _RegistroScreenState extends State<RegistroScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color.fromARGB(255, 11, 41, 77),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.white.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -385,7 +381,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: cor.withOpacity(0.12),
+              color: cor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icone, color: cor),
@@ -399,7 +395,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                   titulo,
                   style: const TextStyle(
                     fontSize: 13,
-                    color: Colors.black54,
+                    color: Color.fromARGB(137, 255, 255, 255),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -424,14 +420,14 @@ class _RegistroScreenState extends State<RegistroScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color.fromARGB(255, 11, 41, 77),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: cor.withOpacity(0.12),
+            backgroundColor: cor.withValues(alpha: 0.12),
             child: Icon(icone, color: cor),
           ),
           const SizedBox(width: 12),
@@ -442,7 +438,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 Text(
                   titulo,
                   style: const TextStyle(
-                    color: Colors.black54,
+                    color: Colors.white54,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -466,7 +462,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: cor.withOpacity(0.1),
+        color: cor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -476,10 +472,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
           const SizedBox(width: 6),
           Text(
             texto,
-            style: TextStyle(
-              color: cor,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(color: cor, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -511,7 +504,10 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     color: Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(Icons.receipt_long, color: Colors.blue),
+                  child: const Icon(
+                    Icons.receipt_long,
+                    color: Color.fromARGB(255, 11, 41, 77),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -530,9 +526,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                       const SizedBox(height: 4),
                       Text(
                         formatarData(registro.data),
-                        style: const TextStyle(
-                          color: Colors.black54,
-                        ),
+                        style: const TextStyle(color: Colors.black54),
                       ),
                     ],
                   ),
@@ -546,14 +540,8 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     }
                   },
                   itemBuilder: (context) => const [
-                    PopupMenuItem(
-                      value: 'editar',
-                      child: Text('Editar'),
-                    ),
-                    PopupMenuItem(
-                      value: 'excluir',
-                      child: Text('Excluir'),
-                    ),
+                    PopupMenuItem(value: 'editar', child: Text('Editar')),
+                    PopupMenuItem(value: 'excluir', child: Text('Excluir')),
                   ],
                 ),
               ],
@@ -566,7 +554,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 _chipInfo(
                   Icons.menu_book,
                   registro.material,
-                  Colors.blue,
+                  const Color.fromARGB(255, 11, 41, 77),
                 ),
                 _chipInfo(
                   Icons.shopping_basket,
@@ -594,8 +582,8 @@ class _RegistroScreenState extends State<RegistroScreen> {
                   registro.formaPagamento == 'Cartão'
                       ? Icons.credit_card
                       : registro.formaPagamento == 'PIX'
-                          ? Icons.qr_code
-                          : Icons.payments,
+                      ? Icons.qr_code
+                      : Icons.payments,
                   _labelFormaPagamento(registro.formaPagamento),
                   Colors.deepPurple,
                 ),
@@ -640,7 +628,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     icon: const Icon(Icons.edit),
                     label: const Text('Editar'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: const Color.fromARGB(255, 11, 41, 77),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -675,13 +663,23 @@ class _RegistroScreenState extends State<RegistroScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue.shade700, Colors.blue.shade500],
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.fromARGB(255, 11, 41, 77),
+            Color.fromARGB(255, 18, 64, 119),
+          ],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.18),
+            color: const Color.fromARGB(
+              255,
+              11,
+              41,
+              77,
+            ).withValues(alpha: 0.18),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),
@@ -757,10 +755,10 @@ class _RegistroScreenState extends State<RegistroScreen> {
     final temMateriais = materiaisGlobais.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FB),
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('Registro Diário'),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color.fromARGB(255, 11, 41, 77),
         elevation: 0,
         actions: [
           IconButton(
@@ -776,342 +774,364 @@ class _RegistroScreenState extends State<RegistroScreen> {
             ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.blue.shade700,
-                      Colors.blue.shade500,
+
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.fromARGB(255, 11, 41, 77),
+              Color.fromARGB(255, 18, 64, 119),
+            ],
+          ),
+        ),
+
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color.fromARGB(255, 11, 41, 77),
+                        const Color.fromARGB(255, 11, 41, 77),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color.fromARGB(255, 11, 41, 77),
+                        blurRadius: 18,
+                        offset: const Offset(0, 10),
+                      ),
                     ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue.withOpacity(0.18),
-                      blurRadius: 18,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Resumo da Campanha',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      _summaryCard(
+                        titulo: 'Total vendido',
+                        valor: formatarMoeda(totalVendido),
+                        icone: Icons.trending_up,
+                        cor: Colors.white,
+                      ),
+                      const SizedBox(height: 10),
+                      _summaryCard(
+                        titulo: 'Total comprado',
+                        valor: formatarMoeda(totalComprado),
+                        icone: Icons.shopping_cart,
+                        cor: Colors.white,
+                      ),
+                      const SizedBox(height: 10),
+                      _summaryCard(
+                        titulo: 'Total de livros',
+                        valor: totalLivros.toString(),
+                        icone: Icons.menu_book,
+                        cor: Colors.white,
+                      ),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Resumo da Campanha',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 11, 41, 77),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color.fromARGB(255, 11, 41, 77),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    _summaryCard(
-                      titulo: 'Total vendido',
-                      valor: formatarMoeda(totalVendido),
-                      icone: Icons.trending_up,
-                      cor: Colors.white,
-                    ),
-                    const SizedBox(height: 10),
-                    _summaryCard(
-                      titulo: 'Total comprado',
-                      valor: formatarMoeda(totalComprado),
-                      icone: Icons.shopping_cart,
-                      cor: Colors.white,
-                    ),
-                    const SizedBox(height: 10),
-                    _summaryCard(
-                      titulo: 'Total de livros',
-                      valor: totalLivros.toString(),
-                      icone: Icons.menu_book,
-                      cor: Colors.white,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 16,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          indiceEditando == null ? 'Novo registro' : 'Editar registro',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextButton.icon(
-                          onPressed: escolherData,
-                          icon: const Icon(Icons.date_range),
-                          label: Text(formatarData(dataSelecionada)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      initialValue: materialSelecionadoNome,
-                      isExpanded: true,
-                      items: _materialItems(),
-                      selectedItemBuilder: (context) {
-                        return materiaisGlobais.map((material) {
-                          return Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              material.nome,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 13),
-                            ),
-                          );
-                        }).toList();
-                      },
-                      decoration: const InputDecoration(
-                        labelText: 'Selecione o material',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 14,
-                        ),
-                      ),
-                      onChanged: temMateriais
-                          ? (value) {
-                              setState(() {
-                                materialSelecionadoNome = value;
-                              });
-                            }
-                          : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: quantidadeController,
-                      onChanged: (_) => setState(() {}),
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Quantidade de livros',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      initialValue: formaPagamentoSelecionada,
-                      decoration: const InputDecoration(
-                        labelText: 'Forma de pagamento',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'Dinheiro',
-                          child: Text('Dinheiro'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'PIX',
-                          child: Text('PIX'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Cartão',
-                          child: Text('Cartão'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() {
-                          formaPagamentoSelecionada = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: observacaoController,
-                      maxLines: 2,
-                      decoration: const InputDecoration(
-                        labelText: 'Observação',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    _previewCard(),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: temMateriais ? salvarRegistro : null,
-                            icon: Icon(
-                              indiceEditando == null ? Icons.save : Icons.check,
-                            ),
-                            label: Text(
-                              indiceEditando == null
-                                  ? 'Salvar Registro'
-                                  : 'Salvar Alteração',
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              minimumSize: const Size.fromHeight(52),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            indiceEditando == null
+                                ? 'Novo registro'
+                                : 'Editar registro',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                        if (indiceEditando != null) ...[
-                          const SizedBox(width: 10),
-                          OutlinedButton(
-                            onPressed: () {
-                              setState(() {
-                                limparFormulario();
-                              });
-                            },
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(52, 52),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: const Icon(Icons.close),
+                          TextButton.icon(
+                            onPressed: escolherData,
+                            icon: const Icon(Icons.date_range),
+                            label: Text(formatarData(dataSelecionada)),
                           ),
                         ],
-                      ],
-                    ),
-                    if (!temMateriais) ...[
+                      ),
                       const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: materialSelecionadoNome,
+                        isExpanded: true,
+                        dropdownColor: const Color.fromARGB(255, 11, 41, 77),
+                        items: _materialItems(),
+                        selectedItemBuilder: (context) {
+                          return materiaisGlobais.map((material) {
+                            return Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                material.nome,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            );
+                          }).toList();
+                        },
+                        decoration: InputDecoration(
+                          labelText: 'Selecione o material',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          filled: true,
+                          fillColor: const Color.fromARGB(255, 11, 41, 77),
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: temMateriais
+                            ? (value) {
+                                setState(() {
+                                  materialSelecionadoNome = value;
+                                });
+                              }
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: quantidadeController,
+                        onChanged: (_) => setState(() {}),
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Quantidade de livros',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: formaPagamentoSelecionada,
+                        decoration: const InputDecoration(
+                          labelText: 'Forma de pagamento',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'Dinheiro',
+                            child: Text('Dinheiro'),
+                          ),
+                          DropdownMenuItem(value: 'PIX', child: Text('PIX')),
+                          DropdownMenuItem(
+                            value: 'Cartão',
+                            child: Text('Cartão'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setState(() {
+                            formaPagamentoSelecionada = value;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: observacaoController,
+                        maxLines: 2,
+                        decoration: const InputDecoration(
+                          labelText: 'Observação',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      _previewCard(),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: temMateriais ? salvarRegistro : null,
+                              icon: Icon(
+                                indiceEditando == null
+                                    ? Icons.save
+                                    : Icons.check,
+                              ),
+                              label: Text(
+                                indiceEditando == null
+                                    ? 'Salvar Registro'
+                                    : 'Salvar Alteração',
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(
+                                  255,
+                                  11,
+                                  41,
+                                  77,
+                                ),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                minimumSize: const Size.fromHeight(52),
+                              ),
+                            ),
+                          ),
+                          if (indiceEditando != null) ...[
+                            const SizedBox(width: 10),
+                            OutlinedButton(
+                              onPressed: () {
+                                setState(() {
+                                  limparFormulario();
+                                });
+                              },
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(52, 52),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Icon(Icons.close),
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (!temMateriais) ...[
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Nenhum material disponível. Adicione materiais na tela Materiais.',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 11, 41, 77),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       const Text(
-                        'Nenhum material disponível. Adicione materiais na tela Materiais.',
-                        style: TextStyle(color: Colors.red),
+                        'Estatísticas',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _statTile(
+                        'Melhor dia de vendas',
+                        formatarMoeda(melhorDiaVendas),
+                        Icons.emoji_events,
+                        Colors.amber,
+                      ),
+                      _statTile(
+                        'Total acumulado da campanha',
+                        formatarMoeda(totalAcumuladoCampanha),
+                        Icons.account_balance_wallet,
+                        const Color.fromARGB(255, 255, 255, 255),
+                      ),
+                      _statTile(
+                        'Média diária de vendas',
+                        formatarMoeda(mediaDiariaVendas),
+                        Icons.show_chart,
+                        Colors.green,
                       ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Estatísticas',
+                      'Registros',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    _statTile(
-                      'Melhor dia de vendas',
-                      formatarMoeda(melhorDiaVendas),
-                      Icons.emoji_events,
-                      Colors.amber,
-                    ),
-                    _statTile(
-                      'Total acumulado da campanha',
-                      formatarMoeda(totalAcumuladoCampanha),
-                      Icons.account_balance_wallet,
-                      Colors.blue,
-                    ),
-                    _statTile(
-                      'Média diária de vendas',
-                      formatarMoeda(mediaDiariaVendas),
-                      Icons.show_chart,
-                      Colors.green,
+                    TextButton.icon(
+                      onPressed: escolherFiltro,
+                      icon: const Icon(Icons.filter_alt),
+                      label: const Text('Filtrar por Data'),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Registros',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                if (dataFiltro != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        Chip(
+                          label: Text('Filtro: ${formatarData(dataFiltro!)}'),
+                        ),
+                        const SizedBox(width: 8),
+                        TextButton(
+                          onPressed: limparFiltro,
+                          child: const Text('Limpar'),
+                        ),
+                      ],
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: escolherFiltro,
-                    icon: const Icon(Icons.filter_alt),
-                    label: const Text('Filtrar por Data'),
+                if (registrosVisiveis.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 11, 41, 77),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: const Column(
+                      children: [
+                        Icon(Icons.inbox, size: 42, color: Colors.white54),
+                        SizedBox(height: 10),
+                        Text(
+                          'Nenhum registro encontrado',
+                          style: TextStyle(color: Colors.white54),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: registrosVisiveis.length,
+                    itemBuilder: (context, index) {
+                      return _registroCard(registrosVisiveis[index]);
+                    },
                   ),
-                ],
-              ),
-              if (dataFiltro != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    children: [
-                      Chip(label: Text('Filtro: ${formatarData(dataFiltro!)}')),
-                      const SizedBox(width: 8),
-                      TextButton(
-                        onPressed: limparFiltro,
-                        child: const Text('Limpar'),
-                      ),
-                    ],
-                  ),
-                ),
-              if (registrosVisiveis.isEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: const Column(
-                    children: [
-                      Icon(Icons.inbox, size: 42, color: Colors.black38),
-                      SizedBox(height: 10),
-                      Text(
-                        'Nenhum registro encontrado',
-                        style: TextStyle(color: Colors.black54),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: registrosVisiveis.length,
-                  itemBuilder: (context, index) {
-                    return _registroCard(registrosVisiveis[index]);
-                  },
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
