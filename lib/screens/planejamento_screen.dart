@@ -167,7 +167,7 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Planejamento'),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color.fromARGB(255, 11, 41, 77).withValues(alpha: 0.92),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -185,6 +185,7 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 255, 255, 255).withValues(alpha: 0.92)),
                 onPressed: salvarDados,
                 child: const Text('Salvar Planejamento'),
               ),
@@ -203,13 +204,16 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 255, 255, 255)),
               onPressed: selecionarDataInicio,
               child: Text(
                 'Data Início: ${dataInicio.day}/${dataInicio.month}/${dataInicio.year}',
               ),
+              
             ),
             const SizedBox(height: 10),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 255, 255, 255)),
               onPressed: selecionarDataFim,
               child: Text(
                 'Data Final: ${dataFim.day}/${dataFim.month}/${dataFim.year}',
