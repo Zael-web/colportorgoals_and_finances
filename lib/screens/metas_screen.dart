@@ -69,7 +69,7 @@ class _MetasScreenState extends State<MetasScreen> {
               onPressed: () async {
                 await excluirPlanejamento();
 
-                if (!mounted) return;
+                if (!mounted || !context.mounted) return;
 
                 setState(() {
                   metaController.text = formatarMoedaSemSimbolo(
@@ -103,7 +103,7 @@ class _MetasScreenState extends State<MetasScreen> {
 
                 await salvarPlanejamento();
 
-                if (!mounted) return;
+                if (!mounted || !context.mounted) return;
 
                 setState(() {});
 
@@ -151,93 +151,129 @@ class _MetasScreenState extends State<MetasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Metas'),
-        backgroundColor: const Color.fromARGB(255, 11, 41, 77),
         actions: [
-          IconButton(onPressed: abrirAcoesDaMeta, icon: const Icon(Icons.edit)),
+          IconButton(
+            onPressed: planejamentoSelecionadoId == null
+                ? null
+                : abrirAcoesDaMeta,
+            icon: const Icon(Icons.edit),
+          ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Meta da Bolsa',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 20),
-
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 11, 41, 77),
-                borderRadius: BorderRadius.circular(20),
-              ),
+      body: planejamentoSelecionadoId == null
+          ? const Center(child: Text('Nenhum planejamento ativo.'))
+          : Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Meta: ${formatarMoeda(metaBolsaGlobal)}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                  const Text(
+                    'Meta da Bolsa',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: temaEscuro
+                          ? const Color(0xFF0B294D)
+                          : const Color(0xFFDCECF8),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                  ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Meta: ${formatarMoeda(metaBolsaGlobal)}',
+                          style: TextStyle(
+                            color: temaEscuro
+                                ? Colors.white
+                                : const Color(0xFF123B68),
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
 
-                  const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                  LinearProgressIndicator(
-                    value: progresso(),
-                    minHeight: 12,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                        LinearProgressIndicator(
+                          value: progresso(),
+                          minHeight: 12,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
 
-                  const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                  Text(
-                    'Vendido: ${formatarMoeda(totalVendido())}',
-                    style: const TextStyle(color: Colors.white, fontSize: 18),
-                  ),
+                        Text(
+                          'Vendido: ${formatarMoeda(totalVendido())}',
+                          style: TextStyle(
+                            color: temaEscuro
+                                ? Colors.white
+                                : const Color(0xFF123B68),
+                            fontSize: 18,
+                          ),
+                        ),
 
-                  const SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                  Text(
-                    'Falta: ${formatarMoeda(falta())}',
-                    style: const TextStyle(color: Colors.white, fontSize: 18),
-                  ),
+                        Text(
+                          'Falta: ${formatarMoeda(falta())}',
+                          style: TextStyle(
+                            color: temaEscuro
+                                ? Colors.white
+                                : const Color(0xFF123B68),
+                            fontSize: 18,
+                          ),
+                        ),
 
-                  const SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                  Text(
-                    '${(progresso() * 100).toStringAsFixed(1)}% concluído',
-                    style: const TextStyle(color: Colors.white, fontSize: 18),
-                  ),
+                        Text(
+                          '${(progresso() * 100).toStringAsFixed(1)}% concluído',
+                          style: TextStyle(
+                            color: temaEscuro
+                                ? Colors.white
+                                : const Color(0xFF123B68),
+                            fontSize: 18,
+                          ),
+                        ),
 
-                  const SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                  Text(
-                    'Meta diária: ${formatarMoeda(metaDiariaNecessaria())}',
-                    style: const TextStyle(color: Colors.white, fontSize: 18),
-                  ),
+                        Text(
+                          'Meta diária: ${formatarMoeda(metaDiariaNecessaria())}',
+                          style: TextStyle(
+                            color: temaEscuro
+                                ? Colors.white
+                                : const Color(0xFF123B68),
+                            fontSize: 18,
+                          ),
+                        ),
 
-                  const SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                  Text(
-                    'Dias restantes: ${diasRestantes()}',
-                    style: const TextStyle(color: Colors.white, fontSize: 18),
+                        Text(
+                          'Dias restantes: ${diasRestantes()}',
+                          style: TextStyle(
+                            color: temaEscuro
+                                ? Colors.white
+                                : const Color(0xFF123B68),
+                            fontSize: 18,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }

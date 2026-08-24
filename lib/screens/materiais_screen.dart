@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../data/app_data.dart';
 import '../models/material_model.dart';
-import '../services/firestore_service.dart';
 
 class MateriaisScreen extends StatefulWidget {
   const MateriaisScreen({super.key});
@@ -12,7 +11,6 @@ class MateriaisScreen extends StatefulWidget {
 }
 
 class _MateriaisScreenState extends State<MateriaisScreen> {
-  final FirestoreService _firestoreService = FirestoreService();
   final TextEditingController buscaController = TextEditingController();
 
   String busca = '';
@@ -24,16 +22,19 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
   }
 
   double _parseValor(String texto) {
-    return double.tryParse(texto.trim().replaceAll(',', '.')) ?? 0.0;
+    final normalizado = texto.trim().contains(',')
+        ? texto.trim().replaceAll('.', '').replaceAll(',', '.')
+        : texto.trim();
+    return double.tryParse(normalizado) ?? 0.0;
   }
 
   Future<void> _abrirFormulario({MaterialModel? material}) async {
     final nomeController = TextEditingController(text: material?.nome ?? '');
     final compraController = TextEditingController(
-      text: material?.valorCompra.toStringAsFixed(2) ?? '',
+      text: material == null ? '' : formatarNumeroGlobal(material.valorCompra),
     );
     final vendaController = TextEditingController(
-      text: material?.valorVenda.toStringAsFixed(2) ?? '',
+      text: material == null ? '' : formatarNumeroGlobal(material.valorVenda),
     );
     final formKey = GlobalKey<FormState>();
 
@@ -124,19 +125,25 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
       }
 
       final materialSalvo = MaterialModel(
-        id: material?.id,
+        id: material?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
         nome: nomeController.text.trim(),
         valorCompra: _parseValor(compraController.text),
         valorVenda: _parseValor(vendaController.text),
       );
 
-      if (materialSalvo.id == null) {
-        await _firestoreService.adicionarMaterial(materialSalvo);
+      if (material == null) {
+        materiaisGlobais.add(materialSalvo);
       } else {
-        await _firestoreService.atualizarMaterial(materialSalvo);
+        final index = material.id == null
+            ? materiaisGlobais.indexOf(material)
+            : materiaisGlobais.indexWhere(
+                (item) => item.id == materialSalvo.id,
+              );
+        if (index != -1) {
+          materiaisGlobais[index] = materialSalvo;
+        }
       }
-
-      await carregarMateriaisGlobais();
+      await salvarMateriaisGlobais();
 
       if (!mounted) {
         return;
@@ -185,8 +192,8 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
       return;
     }
 
-    await _firestoreService.excluirMaterial(material.id!);
-    await carregarMateriaisGlobais();
+    materiaisGlobais.removeWhere((item) => item.id == material.id);
+    await salvarMateriaisGlobais();
 
     if (!mounted) {
       return;
@@ -218,8 +225,8 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Compra: R\$ ${material.valorCompra.toStringAsFixed(2)}'),
-              Text('Venda: R\$ ${material.valorVenda.toStringAsFixed(2)}'),
+              Text('Compra: ${formatarMoedaGlobal(material.valorCompra)}'),
+              Text('Venda: ${formatarMoedaGlobal(material.valorVenda)}'),
             ],
           ),
         ),
@@ -290,24 +297,9 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: StreamBuilder<List<MaterialModel>>(
-                stream: _firestoreService.listarMateriais(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Erro ao carregar materiais: ${snapshot.error}',
-                        textAlign: TextAlign.center,
-                      ),
-                    );
-                  }
-
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  final materiais = snapshot.data ?? [];
-                  final materiaisFiltrados = materiais.where((material) {
+              child: Builder(
+                builder: (context) {
+                  final materiaisFiltrados = materiaisGlobais.where((material) {
                     return material.nome.toLowerCase().contains(
                       busca.toLowerCase(),
                     );

@@ -8,37 +8,67 @@ import '../data/app_data.dart';
 import 'planejamento_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+    super.key,
+    required this.modoEscuro,
+    required this.onAlternarTema,
+  });
+
+  final bool modoEscuro;
+  final VoidCallback onAlternarTema;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late final List<Widget> paginas;
+
+  @override
+  void initState() {
+    super.initState();
+    paginas = [
+      const DashboardPage(),
+      RegistroScreen(atualizarHome: atualizarMetaBolsa),
+      MetasScreen(onMetaChanged: atualizarMetaBolsa),
+      const MateriaisScreen(),
+      PlanejamentoScreen(onMetaChanged: atualizarMetaBolsa),
+    ];
+  }
+
   void atualizarMetaBolsa() {
     setState(() {});
   }
 
   int paginaAtual = 0;
 
-  List<Widget> get paginas => [
-    DashboardPage(),
-
-    RegistroScreen(
-      atualizarHome: () {
-        setState(() {});
-      },
-    ),
-
-    MetasScreen(onMetaChanged: atualizarMetaBolsa),
-    const MateriaisScreen(),
-    PlanejamentoScreen(onMetaChanged: atualizarMetaBolsa),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: paginaAtual, children: paginas),
+      body: Stack(
+        children: [
+          IndexedStack(index: paginaAtual, children: paginas),
+          Positioned(
+            top: MediaQuery.paddingOf(context).top + 4,
+            right: 8,
+            child: Material(
+              color: Theme.of(
+                context,
+              ).colorScheme.surface.withValues(alpha: 0.85),
+              shape: const CircleBorder(),
+              child: IconButton(
+                tooltip: widget.modoEscuro
+                    ? 'Ativar modo claro'
+                    : 'Ativar modo escuro',
+                onPressed: widget.onAlternarTema,
+                icon: Icon(
+                  widget.modoEscuro ? Icons.light_mode : Icons.dark_mode,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
 
       bottomNavigationBar: NavigationBar(
         selectedIndex: paginaAtual,
@@ -111,6 +141,11 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
+    final corPainel = temaEscuro
+        ? const Color(0xFF0B294D)
+        : const Color(0xFFDCECF8);
+    final corTextoPainel = temaEscuro ? Colors.white : const Color(0xFF123B68);
     double progresso = metaBolsaGlobal == 0
         ? 0
         : (totalComprado() / metaBolsaGlobal * 100);
@@ -132,9 +167,12 @@ class _DashboardPageState extends State<DashboardPage> {
 
             const SizedBox(height: 6),
 
-            const Text(
+            Text(
               'Aqui está o resumo da sua campanha.',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
 
             const SizedBox(height: 24),
@@ -143,7 +181,7 @@ class _DashboardPageState extends State<DashboardPage> {
               padding: const EdgeInsets.all(20),
 
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 11, 41, 77),
+                color: corPainel,
                 borderRadius: BorderRadius.circular(20),
               ),
 
@@ -157,19 +195,22 @@ class _DashboardPageState extends State<DashboardPage> {
                     children: [
                       Text(
                         'Meta da Bolsa',
-                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                        style: TextStyle(
+                          color: corTextoPainel.withValues(alpha: 0.72),
+                          fontSize: 16,
+                        ),
                       ),
 
-                      const Icon(Icons.emoji_events, color: Colors.white),
+                      Icon(Icons.emoji_events, color: corTextoPainel),
                     ],
                   ),
 
                   const SizedBox(height: 12),
 
                   Text(
-                    'R\$ ${metaBolsaGlobal.toStringAsFixed(2)}',
+                    formatarMoedaGlobal(metaBolsaGlobal),
                     style: TextStyle(
-                      color: Colors.white,
+                      color: corTextoPainel,
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                     ),
@@ -187,27 +228,27 @@ class _DashboardPageState extends State<DashboardPage> {
 
                   Text(
                     '$progresso% concluído',
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: corTextoPainel),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Falta: R\$ ${faltaParaBolsa().toStringAsFixed(2)}',
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    'Falta: ${formatarMoedaGlobal(faltaParaBolsa())}',
+                    style: TextStyle(color: corTextoPainel, fontSize: 16),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Dias restantes: ${diasRestantes()}',
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    style: TextStyle(color: corTextoPainel, fontSize: 16),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Meta diária: R\$ ${metaDiariaNecessaria().toStringAsFixed(2)}',
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    'Meta diária: ${formatarMoedaGlobal(metaDiariaNecessaria())}',
+                    style: TextStyle(color: corTextoPainel, fontSize: 16),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'totalComprado: R\$ ${totalComprado().toStringAsFixed(2)}',
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    'totalComprado: ${formatarMoedaGlobal(totalComprado())}',
+                    style: TextStyle(color: corTextoPainel, fontSize: 16),
                   ),
                 ],
               ),
@@ -227,7 +268,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Expanded(
                   child: dashboardCard(
                     titulo: 'Vendido',
-                    valor: 'R\$ ${totalVendido().toStringAsFixed(2)}',
+                    valor: formatarMoedaGlobal(totalVendido()),
                     cor: Colors.blue,
                     icone: Icons.attach_money,
                   ),
@@ -238,7 +279,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Expanded(
                   child: dashboardCard(
                     titulo: 'Comprado',
-                    valor: 'R\$ ${totalComprado().toStringAsFixed(2)}',
+                    valor: formatarMoedaGlobal(totalComprado()),
                     cor: Colors.orange,
                     icone: Icons.shopping_cart,
                   ),
@@ -263,7 +304,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Expanded(
                   child: dashboardCard(
                     titulo: 'Meta/Dia',
-                    valor: 'R\$ ${metaDiariaNecessaria().toStringAsFixed(2)}',
+                    valor: formatarMoedaGlobal(metaDiariaNecessaria()),
                     cor: Colors.purple,
                     icone: Icons.flag,
                   ),
@@ -291,7 +332,7 @@ class _DashboardPageState extends State<DashboardPage> {
             ...registrosGlobais.reversed.map((registro) {
               return registroTile(
                 '${registro.data.day}/${registro.data.month}/${registro.data.year}',
-                'R\$ ${registro.vendido.toStringAsFixed(2)}',
+                formatarMoedaGlobal(registro.vendido),
                 '${registro.quantidade} livros',
               );
             }),
@@ -307,11 +348,12 @@ class _DashboardPageState extends State<DashboardPage> {
     required Color cor,
     required IconData icone,
   }) {
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(18),
 
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 11, 41, 77),
+        color: temaEscuro ? const Color(0xFF0B294D) : const Color(0xFFE4F1FA),
         borderRadius: BorderRadius.circular(18),
 
         boxShadow: [
@@ -334,7 +376,12 @@ class _DashboardPageState extends State<DashboardPage> {
 
           const SizedBox(height: 14),
 
-          Text(titulo, style: const TextStyle(color: Colors.grey)),
+          Text(
+            titulo,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
 
           const SizedBox(height: 6),
 
@@ -348,13 +395,14 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget registroTile(String data, String valor, String livros) {
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
 
       padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: temaEscuro ? const Color(0xFF143A60) : Colors.white,
         borderRadius: BorderRadius.circular(16),
 
         boxShadow: [
@@ -370,11 +418,22 @@ class _DashboardPageState extends State<DashboardPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
-              Text(data, style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                data,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
 
               const SizedBox(height: 4),
 
-              Text(livros, style: const TextStyle(color: Colors.grey)),
+              Text(
+                livros,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ),
 

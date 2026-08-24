@@ -55,7 +55,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
   }
 
   String formatarMoeda(double valor) {
-    return 'R\$ ${valor.toStringAsFixed(2)}';
+    return formatarMoedaGlobal(valor);
   }
 
   String formatarData(DateTime data) {
@@ -236,6 +236,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
   Future<void> salvarRegistro() async {
     final estavaEditando = indiceEditando != null;
+    final totalCompradoAntes = totalComprado;
 
     final material = materialSelecionado;
     final quantidade = quantidadeDigitada;
@@ -289,6 +290,29 @@ class _RegistroScreenState extends State<RegistroScreen> {
     widget.atualizarHome();
 
     if (!mounted) return;
+
+    if (metaBolsaGlobal > 0 &&
+        totalCompradoAntes < metaBolsaGlobal &&
+        totalComprado >= metaBolsaGlobal) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          icon: const Icon(Icons.celebration, color: Colors.amber, size: 44),
+          title: const Text('Parabéns!'),
+          content: const Text(
+            'Você atingiu sua meta da bolsa. Continue avançando!',
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Continuar'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -362,10 +386,11 @@ class _RegistroScreenState extends State<RegistroScreen> {
     required IconData icone,
     required Color cor,
   }) {
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 11, 41, 77),
+        color: temaEscuro ? const Color(0xFF0B294D) : const Color(0xFFE4F1FA),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
@@ -393,9 +418,11 @@ class _RegistroScreenState extends State<RegistroScreen> {
               children: [
                 Text(
                   titulo,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Color.fromARGB(137, 255, 255, 255),
+                    color: temaEscuro
+                        ? Colors.white70
+                        : const Color(0xFF35607F),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -416,13 +443,16 @@ class _RegistroScreenState extends State<RegistroScreen> {
   }
 
   Widget _statTile(String titulo, String valor, IconData icone, Color cor) {
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 11, 41, 77),
+        color: temaEscuro ? const Color(0xFF0B294D) : const Color(0xFFE4F1FA),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(
+          color: temaEscuro ? Colors.white24 : Colors.blueGrey.shade100,
+        ),
       ),
       child: Row(
         children: [
@@ -437,8 +467,10 @@ class _RegistroScreenState extends State<RegistroScreen> {
               children: [
                 Text(
                   titulo,
-                  style: const TextStyle(
-                    color: Colors.white54,
+                  style: TextStyle(
+                    color: temaEscuro
+                        ? Colors.white54
+                        : const Color(0xFF35607F),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -481,13 +513,16 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
   Widget _registroCard(int indice) {
     final registro = registrosGlobais[indice];
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(
+          color: temaEscuro ? Colors.white24 : Colors.blueGrey.shade100,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -501,12 +536,14 @@ class _RegistroScreenState extends State<RegistroScreen> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: temaEscuro
+                        ? const Color(0xFF1B4A76)
+                        : Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.receipt_long,
-                    color: Color.fromARGB(255, 11, 41, 77),
+                    color: temaEscuro ? Colors.white : const Color(0xFF0B294D),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -526,7 +563,9 @@ class _RegistroScreenState extends State<RegistroScreen> {
                       const SizedBox(height: 4),
                       Text(
                         formatarData(registro.data),
-                        style: const TextStyle(color: Colors.black54),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -610,12 +649,16 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: temaEscuro
+                      ? const Color(0xFF163A5D)
+                      : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
                   registro.observacao,
-                  style: const TextStyle(color: Colors.black87),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
               ),
             ],
@@ -628,8 +671,12 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     icon: const Icon(Icons.edit),
                     label: const Text('Editar'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 11, 41, 77),
-                      foregroundColor: Colors.white,
+                      backgroundColor: temaEscuro
+                          ? const Color(0xFF0B294D)
+                          : const Color(0xFFDCECF8),
+                      foregroundColor: temaEscuro
+                          ? Colors.white
+                          : const Color(0xFF123B68),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -659,17 +706,18 @@ class _RegistroScreenState extends State<RegistroScreen> {
   }
 
   Widget _previewCard() {
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
+    final corTexto = temaEscuro ? Colors.white : const Color(0xFF123B68);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color.fromARGB(255, 11, 41, 77),
-            Color.fromARGB(255, 18, 64, 119),
-          ],
+          colors: temaEscuro
+              ? const [Color(0xFF0B294D), Color(0xFF124077)]
+              : const [Color(0xFFDCECF8), Color(0xFFF5FAFE)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
@@ -688,10 +736,10 @@ class _RegistroScreenState extends State<RegistroScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Resumo automático',
             style: TextStyle(
-              color: Colors.white70,
+              color: temaEscuro ? Colors.white70 : const Color(0xFF35607F),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -700,49 +748,49 @@ class _RegistroScreenState extends State<RegistroScreen> {
             titulo: 'Livro selecionado',
             valor: materialSelecionadoNome ?? 'Selecione um material',
             icone: Icons.menu_book,
-            cor: Colors.white,
+            cor: corTexto,
           ),
           const SizedBox(height: 10),
           _summaryCard(
             titulo: 'Quantidade',
             valor: quantidadeDigitada.toString(),
             icone: Icons.shopping_basket,
-            cor: Colors.white,
+            cor: corTexto,
           ),
           const SizedBox(height: 10),
           _summaryCard(
             titulo: 'Valor comprado',
             valor: formatarMoeda(valorCompradoCalculado),
             icone: Icons.inventory_2,
-            cor: Colors.white,
+            cor: corTexto,
           ),
           const SizedBox(height: 10),
           _summaryCard(
             titulo: 'Valor vendido',
             valor: formatarMoeda(valorVendidoCalculado),
             icone: Icons.trending_up,
-            cor: Colors.white,
+            cor: corTexto,
           ),
           const SizedBox(height: 10),
           _summaryCard(
             titulo: 'Dízimo',
             valor: formatarMoeda(dizimoCalculado),
             icone: Icons.percent,
-            cor: Colors.white,
+            cor: corTexto,
           ),
           const SizedBox(height: 10),
           _summaryCard(
             titulo: 'Taxa do cartão',
             valor: formatarMoeda(taxaCartaoCalculada),
             icone: Icons.credit_card,
-            cor: Colors.white,
+            cor: corTexto,
           ),
           const SizedBox(height: 10),
           _summaryCard(
             titulo: 'Valor líquido',
             valor: formatarMoeda(valorLiquidoCalculado),
             icone: Icons.account_balance_wallet,
-            cor: Colors.white,
+            cor: corTexto,
           ),
         ],
       ),
@@ -751,6 +799,11 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
+    final corPainel = temaEscuro
+        ? const Color(0xFF0B294D)
+        : const Color(0xFFE4F1FA);
+    final corTextoPainel = temaEscuro ? Colors.white : const Color(0xFF123B68);
     final registrosVisiveis = _indicesVisiveis;
     final temMateriais = materiaisGlobais.isNotEmpty;
 
@@ -758,7 +811,6 @@ class _RegistroScreenState extends State<RegistroScreen> {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('Registro Diário'),
-        backgroundColor: const Color.fromARGB(255, 11, 41, 77),
         elevation: 0,
         actions: [
           IconButton(
@@ -776,16 +828,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
       ),
 
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.fromARGB(255, 11, 41, 77),
-              Color.fromARGB(255, 18, 64, 119),
-            ],
-          ),
-        ),
+        decoration: const BoxDecoration(),
 
         child: SingleChildScrollView(
           child: Padding(
@@ -797,10 +840,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        const Color.fromARGB(255, 11, 41, 77),
-                        const Color.fromARGB(255, 11, 41, 77),
-                      ],
+                      colors: [corPainel, corPainel],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -817,10 +857,10 @@ class _RegistroScreenState extends State<RegistroScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Resumo da Campanha',
                         style: TextStyle(
-                          color: Colors.white70,
+                          color: corTextoPainel.withValues(alpha: 0.72),
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -830,21 +870,21 @@ class _RegistroScreenState extends State<RegistroScreen> {
                         titulo: 'Total vendido',
                         valor: formatarMoeda(totalVendido),
                         icone: Icons.trending_up,
-                        cor: Colors.white,
+                        cor: corTextoPainel,
                       ),
                       const SizedBox(height: 10),
                       _summaryCard(
                         titulo: 'Total comprado',
                         valor: formatarMoeda(totalComprado),
                         icone: Icons.shopping_cart,
-                        cor: Colors.white,
+                        cor: corTextoPainel,
                       ),
                       const SizedBox(height: 10),
                       _summaryCard(
                         titulo: 'Total de livros',
                         valor: totalLivros.toString(),
                         icone: Icons.menu_book,
-                        cor: Colors.white,
+                        cor: corTextoPainel,
                       ),
                     ],
                   ),
@@ -854,7 +894,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 11, 41, 77),
+                    color: corPainel,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
@@ -890,7 +930,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                       DropdownButtonFormField<String>(
                         initialValue: materialSelecionadoNome,
                         isExpanded: true,
-                        dropdownColor: const Color.fromARGB(255, 11, 41, 77),
+                        dropdownColor: corPainel,
                         items: _materialItems(),
                         selectedItemBuilder: (context) {
                           return materiaisGlobais.map((material) {
@@ -907,9 +947,11 @@ class _RegistroScreenState extends State<RegistroScreen> {
                         },
                         decoration: InputDecoration(
                           labelText: 'Selecione o material',
-                          labelStyle: const TextStyle(color: Colors.white70),
+                          labelStyle: TextStyle(
+                            color: corTextoPainel.withValues(alpha: 0.72),
+                          ),
                           filled: true,
-                          fillColor: const Color.fromARGB(255, 11, 41, 77),
+                          fillColor: corPainel,
                           border: OutlineInputBorder(),
                         ),
                         onChanged: temMateriais
@@ -933,7 +975,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: formaPagamentoSelecionada,
-                        dropdownColor: const Color.fromARGB(255, 11, 41, 77),
+                        dropdownColor: corPainel,
                         decoration: const InputDecoration(
                           labelText: 'Forma de pagamento',
                           border: OutlineInputBorder(),
@@ -984,7 +1026,12 @@ class _RegistroScreenState extends State<RegistroScreen> {
                                     : 'Salvar Alteração',
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 9, 197, 56).withValues(alpha: 0.8),
+                                backgroundColor: const Color.fromARGB(
+                                  255,
+                                  9,
+                                  197,
+                                  56,
+                                ).withValues(alpha: 0.8),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -1027,9 +1074,13 @@ class _RegistroScreenState extends State<RegistroScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 11, 41, 77),
+                    color: corPainel,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(
+                      color: temaEscuro
+                          ? Colors.white24
+                          : Colors.blueGrey.shade100,
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1052,7 +1103,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                         'Total acumulado da campanha',
                         formatarMoeda(totalAcumuladoCampanha),
                         Icons.account_balance_wallet,
-                        const Color.fromARGB(255, 255, 255, 255),
+                        corTextoPainel,
                       ),
                       _statTile(
                         'Média diária de vendas',
@@ -1102,17 +1153,27 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 11, 41, 77),
+                      color: corPainel,
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(
+                        color: temaEscuro
+                            ? Colors.white24
+                            : Colors.blueGrey.shade100,
+                      ),
                     ),
-                    child: const Column(
+                    child: Column(
                       children: [
-                        Icon(Icons.inbox, size: 42, color: Colors.white54),
+                        Icon(
+                          Icons.inbox,
+                          size: 42,
+                          color: corTextoPainel.withValues(alpha: 0.54),
+                        ),
                         SizedBox(height: 10),
                         Text(
                           'Nenhum registro encontrado',
-                          style: TextStyle(color: Colors.white54),
+                          style: TextStyle(
+                            color: corTextoPainel.withValues(alpha: 0.54),
+                          ),
                         ),
                       ],
                     ),

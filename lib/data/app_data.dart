@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 import '../models/registro.dart';
 import '../models/material_model.dart';
+import '../models/campanha.dart';
 import '../services/firestore_service.dart';
 
 List<Registro> registrosGlobais = [];
@@ -37,10 +39,21 @@ double metaBolsaGlobal = 18000;
 
 DateTime dataInicioGlobal = DateTime.now();
 
-DateTime dataFimGlobal =
-    DateTime.now().add(
-  const Duration(days: 30),
-);
+DateTime dataFimGlobal = DateTime.now().add(const Duration(days: 30));
+
+List<Planejamento> planejamentosGlobais = [];
+String? planejamentoSelecionadoId;
+
+String formatarMoedaGlobal(double valor) {
+  return NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$ ').format(valor);
+}
+
+String formatarNumeroGlobal(double valor, {int casas = 2}) {
+  return NumberFormat.decimalPatternDigits(
+    locale: 'pt_BR',
+    decimalDigits: casas,
+  ).format(valor);
+}
 
 Future<void> salvarRegistrosGlobais() async {
   final prefs = await SharedPreferences.getInstance();
@@ -49,23 +62,17 @@ Future<void> salvarRegistrosGlobais() async {
     return jsonEncode(registro.toMap());
   }).toList();
 
-  await prefs.setStringList(
-    'registros',
-    lista,
-  );
+  await prefs.setStringList('registros', lista);
 }
 
 Future<void> carregarRegistrosGlobais() async {
   final prefs = await SharedPreferences.getInstance();
 
-  List<String>? lista =
-      prefs.getStringList('registros');
+  List<String>? lista = prefs.getStringList('registros');
 
   if (lista != null) {
     registrosGlobais = lista.map((item) {
-      return Registro.fromMap(
-        jsonDecode(item),
-      );
+      return Registro.fromMap(jsonDecode(item));
     }).toList();
   }
 }
@@ -101,8 +108,7 @@ int totalLivrosGlobal() {
 }
 
 double faltaParaBolsa() {
-  double falta =
-      metaBolsaGlobal - totalCompradoGlobal();
+  double falta = metaBolsaGlobal - totalCompradoGlobal();
 
   if (falta < 0) {
     return 0;
@@ -111,12 +117,10 @@ double faltaParaBolsa() {
   return falta;
 }
 
-
 int diasRestantes() {
   final hoje = DateTime.now();
 
-  int dias =
-      dataFimGlobal.difference(hoje).inDays;
+  int dias = dataFimGlobal.difference(hoje).inDays;
 
   if (dias <= 0) {
     return 1;
@@ -126,36 +130,23 @@ int diasRestantes() {
 }
 
 double metaDiariaNecessaria() {
-
   if (metaBolsaGlobal == 0) {
     return 0;
   }
-  return faltaParaBolsa() /
-      diasRestantes();
+  return faltaParaBolsa() / diasRestantes();
 }
 
 Future<void> salvarMateriaisGlobais() async {
+  final prefs = await SharedPreferences.getInstance();
 
-  final prefs =
-      await SharedPreferences.getInstance();
-
-  List<String> lista =
-      materiaisGlobais.map((material) {
-
-    return jsonEncode(
-      material.toMap(),
-    );
-
+  List<String> lista = materiaisGlobais.map((material) {
+    return jsonEncode(material.toMap());
   }).toList();
 
-  await prefs.setStringList(
-    'materiais',
-    lista,
-  );
+  await prefs.setStringList('materiais', lista);
 }
 
 Future<void> carregarMateriaisGlobais() async {
-
   try {
     final materiaisFirestore = await _firestoreService.listarMateriais().first;
 
@@ -167,21 +158,13 @@ Future<void> carregarMateriaisGlobais() async {
     // Se o Firestore ainda não responder, usamos os dados locais como fallback.
   }
 
-  final prefs =
-      await SharedPreferences.getInstance();
+  final prefs = await SharedPreferences.getInstance();
 
-  List<String>? lista =
-      prefs.getStringList('materiais');
+  List<String>? lista = prefs.getStringList('materiais');
 
   if (lista != null && lista.isNotEmpty) {
-
-    materiaisGlobais =
-        lista.map((item) {
-
-      return MaterialModel.fromMap(
-        jsonDecode(item),
-      );
-
+    materiaisGlobais = lista.map((item) {
+      return MaterialModel.fromMap(jsonDecode(item));
     }).toList();
   }
 
@@ -195,79 +178,159 @@ Future<void> carregarMateriaisGlobais() async {
     }
   }
 }
+
 Future<void> salvarPlanejamento() async {
-  final prefs =
-      await SharedPreferences.getInstance();
+  final prefs = await SharedPreferences.getInstance();
 
-  await prefs.setDouble(
-    'metaBolsaGlobal',
-    metaBolsaGlobal,
-  );
+  await prefs.setDouble('metaBolsaGlobal', metaBolsaGlobal);
 
-  await prefs.setString(
-    'dataInicioGlobal',
-    dataInicioGlobal.toIso8601String(),
-  );
+  await prefs.setString('dataInicioGlobal', dataInicioGlobal.toIso8601String());
 
-  await prefs.setString(
-    'dataFimGlobal',
-    dataFimGlobal.toIso8601String(),
-  );
+  await prefs.setString('dataFimGlobal', dataFimGlobal.toIso8601String());
+
+  if (planejamentoSelecionadoId != null) {
+    final index = planejamentosGlobais.indexWhere(
+      (item) => item.id == planejamentoSelecionadoId,
+    );
+    if (index != -1) {
+      planejamentosGlobais[index] = Planejamento(
+        id: planejamentosGlobais[index].id,
+        nome: planejamentosGlobais[index].nome,
+        meta: metaBolsaGlobal,
+        dataInicio: dataInicioGlobal,
+        dataFim: dataFimGlobal,
+      );
+      await salvarListaPlanejamentos();
+    }
+  }
 }
 
 Future<void> carregarPlanejamento() async {
-  final prefs =
-      await SharedPreferences.getInstance();
+  final prefs = await SharedPreferences.getInstance();
 
-  metaBolsaGlobal =
-      prefs.getDouble(
-        'metaBolsaGlobal',
-      ) ??
-      18000;
+  metaBolsaGlobal = prefs.getDouble('metaBolsaGlobal') ?? 18000;
 
-  String? inicio =
-      prefs.getString(
-        'dataInicioGlobal',
-      );
+  String? inicio = prefs.getString('dataInicioGlobal');
 
-  String? fim =
-      prefs.getString(
-        'dataFimGlobal',
-      );
+  String? fim = prefs.getString('dataFimGlobal');
 
   if (inicio != null) {
-    dataInicioGlobal =
-        DateTime.parse(inicio);
+    dataInicioGlobal = DateTime.parse(inicio);
   }
 
   if (fim != null) {
-    dataFimGlobal =
-        DateTime.parse(fim);
+    dataFimGlobal = DateTime.parse(fim);
   }
 }
 
 Future<void> excluirPlanejamento() async {
-  final prefs =
-      await SharedPreferences.getInstance();
+  final prefs = await SharedPreferences.getInstance();
 
-  await prefs.remove(
-    'metaBolsaGlobal',
-  );
+  await prefs.remove('metaBolsaGlobal');
 
-  await prefs.remove(
-    'dataInicioGlobal',
-  );
+  await prefs.remove('dataInicioGlobal');
 
-  await prefs.remove(
-    'dataFimGlobal',
-  );
+  await prefs.remove('dataFimGlobal');
 
-  metaBolsaGlobal = 18000;
+  metaBolsaGlobal = 0;
 
   dataInicioGlobal = DateTime.now();
 
-  dataFimGlobal =
-      DateTime.now().add(
-    const Duration(days: 30),
+  dataFimGlobal = DateTime.now().add(const Duration(days: 30));
+
+  if (planejamentoSelecionadoId != null) {
+    planejamentosGlobais.removeWhere(
+      (item) => item.id == planejamentoSelecionadoId,
+    );
+    planejamentoSelecionadoId = null;
+    await prefs.remove('planejamentoSelecionadoId');
+    await salvarListaPlanejamentos();
+  }
+}
+
+Future<void> salvarListaPlanejamentos() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList(
+    'planejamentos',
+    planejamentosGlobais
+        .map((planejamento) => jsonEncode(planejamento.toMap()))
+        .toList(),
   );
+}
+
+Future<void> carregarPlanejamentos() async {
+  final prefs = await SharedPreferences.getInstance();
+  final lista = prefs.getStringList('planejamentos');
+
+  if (lista != null) {
+    planejamentosGlobais = lista
+        .map(
+          (item) =>
+              Planejamento.fromMap(jsonDecode(item) as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  if (lista == null && planejamentosGlobais.isEmpty) {
+    planejamentosGlobais = [
+      Planejamento(
+        id: 'principal',
+        nome: 'Meu planejamento',
+        meta: metaBolsaGlobal,
+        dataInicio: dataInicioGlobal,
+        dataFim: dataFimGlobal,
+      ),
+    ];
+    await salvarListaPlanejamentos();
+  }
+
+  planejamentoSelecionadoId = prefs.getString('planejamentoSelecionadoId');
+  if (planejamentosGlobais.isEmpty) {
+    planejamentoSelecionadoId = null;
+    return;
+  }
+  if (!planejamentosGlobais.any(
+    (item) => item.id == planejamentoSelecionadoId,
+  )) {
+    planejamentoSelecionadoId = planejamentosGlobais.first.id;
+  }
+  await selecionarPlanejamento(planejamentoSelecionadoId!);
+}
+
+Future<void> selecionarPlanejamento(String id) async {
+  final planejamento = planejamentosGlobais.firstWhere((item) => item.id == id);
+  planejamentoSelecionadoId = id;
+  metaBolsaGlobal = planejamento.meta;
+  dataInicioGlobal = planejamento.dataInicio;
+  dataFimGlobal = planejamento.dataFim;
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('planejamentoSelecionadoId', id);
+  await salvarPlanejamento();
+}
+
+Future<void> salvarOuAtualizarPlanejamento(Planejamento planejamento) async {
+  final index = planejamentosGlobais.indexWhere(
+    (item) => item.id == planejamento.id,
+  );
+  if (index == -1) {
+    planejamentosGlobais.add(planejamento);
+  } else {
+    planejamentosGlobais[index] = planejamento;
+  }
+  await salvarListaPlanejamentos();
+  await selecionarPlanejamento(planejamento.id);
+}
+
+Future<void> excluirPlanejamentoPorId(String id) async {
+  planejamentosGlobais.removeWhere((item) => item.id == id);
+  if (planejamentosGlobais.isEmpty) {
+    planejamentoSelecionadoId = null;
+    await excluirPlanejamento();
+    await salvarListaPlanejamentos();
+    return;
+  }
+  if (planejamentoSelecionadoId == id) {
+    await selecionarPlanejamento(planejamentosGlobais.first.id);
+  }
+  await salvarListaPlanejamentos();
 }

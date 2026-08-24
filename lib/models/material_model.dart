@@ -13,18 +13,16 @@ class MaterialModel {
 
   Map<String, dynamic> toMap() {
     return {
+      if (id != null) 'id': id,
       'nome': nome,
       'valorCompra': valorCompra,
       'valorVenda': valorVenda,
     };
   }
 
-  factory MaterialModel.fromMap(
-    Map<String, dynamic> map, {
-    String? id,
-  }) {
+  factory MaterialModel.fromMap(Map<String, dynamic> map, {String? id}) {
     return MaterialModel(
-      id: id,
+      id: id ?? map['id']?.toString(),
       nome: map['nome']?.toString() ?? '',
       valorCompra: _toDouble(map['valorCompra']),
       valorVenda: _toDouble(map['valorVenda']),

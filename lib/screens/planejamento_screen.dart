@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/app_data.dart';
+import '../models/campanha.dart';
 
 class PlanejamentoScreen extends StatefulWidget {
   const PlanejamentoScreen({super.key, this.onMetaChanged});
@@ -12,140 +13,244 @@ class PlanejamentoScreen extends StatefulWidget {
 }
 
 class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
-  final TextEditingController metaController = TextEditingController();
+  String formatarData(DateTime data) =>
+      '${data.day}/${data.month}/${data.year}';
 
-  DateTime dataInicio = DateTime.now();
+  Future<void> abrirEditor([Planejamento? planejamento]) async {
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
+    final corAcao = temaEscuro
+        ? const Color(0xFF4DA3FF)
+        : const Color(0xFF1769AA);
+    final corTextoAcao = temaEscuro ? const Color(0xFF071826) : Colors.white;
+    final nomeController = TextEditingController(
+      text: planejamento?.nome ?? '',
+    );
+    final metaController = TextEditingController(
+      text: planejamento == null
+          ? ''
+          : formatarNumeroGlobal(planejamento.meta, casas: 0),
+    );
+    var dataInicio = planejamento?.dataInicio ?? DateTime.now();
+    var dataFim =
+        planejamento?.dataFim ?? DateTime.now().add(const Duration(days: 30));
 
-  DateTime dataFim = DateTime.now().add(const Duration(days: 30));
+    final resultado = await showDialog<Planejamento>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: temaEscuro
+              ? const Color(0xFF102D4D)
+              : const Color(0xFFF5FAFE),
+          title: Text(
+            planejamento == null ? 'Novo planejamento' : 'Editar planejamento',
+            style: TextStyle(
+              color: temaEscuro ? Colors.white : const Color(0xFF123B68),
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nomeController,
+                  autofocus: planejamento == null,
+                  decoration: InputDecoration(
+                    labelText: 'Nome',
+                    labelStyle: TextStyle(
+                      color: temaEscuro
+                          ? Colors.white70
+                          : const Color(0xFF35607F),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: metaController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Meta da bolsa',
+                    labelStyle: TextStyle(
+                      color: temaEscuro
+                          ? Colors.white70
+                          : const Color(0xFF35607F),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.calendar_today),
+                  title: Text(
+                    'Data de início',
+                    style: TextStyle(
+                      color: temaEscuro
+                          ? Colors.white
+                          : const Color(0xFF123B68),
+                    ),
+                  ),
+                  subtitle: Text(
+                    formatarData(dataInicio),
+                    style: TextStyle(
+                      color: temaEscuro
+                          ? Colors.white70
+                          : const Color(0xFF35607F),
+                    ),
+                  ),
+                  onTap: () async {
+                    final data = await showDatePicker(
+                      context: context,
+                      initialDate: dataInicio,
+                      firstDate: DateTime(2024),
+                      lastDate: DateTime(2035),
+                    );
+                    if (data != null) {
+                      setDialogState(() => dataInicio = data);
+                    }
+                  },
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.event),
+                  title: Text(
+                    'Data final',
+                    style: TextStyle(
+                      color: temaEscuro
+                          ? Colors.white
+                          : const Color(0xFF123B68),
+                    ),
+                  ),
+                  subtitle: Text(
+                    formatarData(dataFim),
+                    style: TextStyle(
+                      color: temaEscuro
+                          ? Colors.white70
+                          : const Color(0xFF35607F),
+                    ),
+                  ),
+                  onTap: () async {
+                    final data = await showDatePicker(
+                      context: context,
+                      initialDate: dataFim,
+                      firstDate: DateTime(2024),
+                      lastDate: DateTime(2035),
+                    );
+                    if (data != null) {
+                      setDialogState(() => dataFim = data);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: corAcao,
+                foregroundColor: corTextoAcao,
+              ),
+              onPressed: () {
+                final textoMeta = metaController.text.trim();
+                final textoNormalizado = textoMeta.contains(',')
+                    ? textoMeta.replaceAll('.', '').replaceAll(',', '.')
+                    : textoMeta;
+                final meta = double.tryParse(textoNormalizado);
+                final nome = nomeController.text.trim();
+                if (nome.isEmpty ||
+                    meta == null ||
+                    meta <= 0 ||
+                    dataFim.isBefore(dataInicio)) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Preencha o nome, uma meta válida e um período correto.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                Navigator.pop(
+                  dialogContext,
+                  Planejamento(
+                    id:
+                        planejamento?.id ??
+                        DateTime.now().microsecondsSinceEpoch.toString(),
+                    nome: nome,
+                    meta: meta,
+                    dataInicio: dataInicio,
+                    dataFim: dataFim,
+                  ),
+                );
+              },
+              child: const Text('Salvar'),
+            ),
+          ],
+        ),
+      ),
+    );
 
-  @override
-  void initState() {
-    super.initState();
-    carregarDados();
-  }
-
-  @override
-  void dispose() {
+    nomeController.dispose();
     metaController.dispose();
-    super.dispose();
-  }
+    if (resultado == null) return;
 
-  Future<void> carregarDados() async {
-    await carregarPlanejamento();
-
-    if (!mounted) return;
-
-    setState(() {
-      dataInicio = dataInicioGlobal;
-      dataFim = dataFimGlobal;
-      metaController.text = metaBolsaGlobal.toStringAsFixed(0);
-    });
-  }
-
-  Future<void> salvarDados() async {
-    final valor = double.tryParse(metaController.text);
-
-    if (valor != null && valor > 0) {
-      metaBolsaGlobal = valor;
+    try {
+      await salvarOuAtualizarPlanejamento(resultado);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível salvar o planejamento.'),
+        ),
+      );
+      return;
     }
-
-    dataInicioGlobal = dataInicio;
-    dataFimGlobal = dataFim;
-
-    await salvarPlanejamento();
-
+    if (!mounted) return;
+    setState(() {});
     widget.onMetaChanged?.call();
-
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Planejamento salvo!')));
-  }
-
-  double totalComprado() {
-    return totalCompradoGlobal();
-  }
-
-  double quantoFalta() {
-    final falta = metaBolsaGlobal - totalComprado();
-    return falta < 0 ? 0 : falta;
-  }
-
-  int diasRestantes() {
-    final dias = dataFim.difference(DateTime.now()).inDays;
-    return dias <= 0 ? 1 : dias;
-  }
-
-  double mediaNecessaria() {
-    return quantoFalta() / diasRestantes();
-  }
-
-  double progresso() {
-    if (metaBolsaGlobal == 0) return 0;
-
-    final valor = totalComprado() / metaBolsaGlobal;
-    return valor > 1 ? 1 : valor;
-  }
-
-  Future<void> selecionarDataInicio() async {
-    final data = await showDatePicker(
-      context: context,
-      initialDate: dataInicio,
-      firstDate: DateTime(2024),
-      lastDate: DateTime(2035),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          planejamento == null
+              ? 'Planejamento adicionado!'
+              : 'Planejamento atualizado!',
+        ),
+      ),
     );
-
-    if (data != null) {
-      setState(() {
-        dataInicio = data;
-      });
-
-      await salvarDados();
-    }
   }
 
-  Future<void> selecionarDataFim() async {
-    final data = await showDatePicker(
+  Future<void> excluir(Planejamento planejamento) async {
+    final confirmou = await showDialog<bool>(
       context: context,
-      initialDate: dataFim,
-      firstDate: DateTime(2024),
-      lastDate: DateTime(2035),
+      builder: (context) => AlertDialog(
+        title: const Text('Excluir planejamento?'),
+        content: Text('O planejamento "${planejamento.nome}" será removido.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton.tonal(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
     );
+    if (confirmou != true) return;
 
-    if (data != null) {
-      setState(() {
-        dataFim = data;
-      });
-
-      await salvarDados();
-    }
-  }
-
-  Future<void> resetarPlanejamento() async {
-    await excluirPlanejamento();
-
+    await excluirPlanejamentoPorId(planejamento.id);
     if (!mounted) return;
-
-    setState(() {
-      dataInicio = dataInicioGlobal;
-      dataFim = dataFimGlobal;
-      metaController.text = metaBolsaGlobal.toStringAsFixed(0);
-    });
-
+    setState(() {});
     widget.onMetaChanged?.call();
-
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Planejamento excluído!')));
   }
 
-  Widget infoCard({
-    required String titulo,
-    required String valor,
-    required IconData icone,
-    required Color cor,
-  }) {
+  Widget resumo(String titulo, String valor, IconData icone, Color cor) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
@@ -164,96 +269,123 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
+    final corAcao = temaEscuro
+        ? const Color(0xFF4DA3FF)
+        : const Color(0xFF1769AA);
+    final corTextoAcao = temaEscuro ? const Color(0xFF071826) : Colors.white;
+    final selecionado = planejamentosGlobais
+        .where((item) => item.id == planejamentoSelecionadoId)
+        .firstOrNull;
+    final falta = (metaBolsaGlobal - totalCompradoGlobal()).clamp(
+      0,
+      double.infinity,
+    );
+    final dias = dataFimGlobal.difference(DateTime.now()).inDays;
+    final diasRestantes = dias <= 0 ? 1 : dias;
+    final progresso = metaBolsaGlobal == 0
+        ? 0.0
+        : (totalCompradoGlobal() / metaBolsaGlobal).clamp(0.0, 1.0);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Planejamento'),
-        backgroundColor: const Color.fromARGB(255, 11, 41, 77).withValues(alpha: 0.92),
-      ),
+      appBar: AppBar(title: const Text('Planejamentos')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: metaController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Meta da Bolsa',
-                border: OutlineInputBorder(),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: corAcao,
+                foregroundColor: corTextoAcao,
               ),
+              onPressed: () => abrirEditor(),
+              icon: const Icon(Icons.add),
+              label: const Text('Adicionar planejamento'),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 255, 255, 255).withValues(alpha: 0.92)),
-                onPressed: salvarDados,
-                child: const Text('Salvar Planejamento'),
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                onPressed: resetarPlanejamento,
-                child: const Text(
-                  'Excluir Planejamento',
-                  style: TextStyle(color: Colors.white),
+            ...planejamentosGlobais.map(
+              (planejamento) => Card(
+                child: ListTile(
+                  selected: planejamento.id == planejamentoSelecionadoId,
+                  leading: Icon(
+                    planejamento.id == planejamentoSelecionadoId
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_off,
+                  ),
+                  title: Text(planejamento.nome),
+                  subtitle: Text(
+                    '${formatarMoedaGlobal(planejamento.meta)} | ${formatarData(planejamento.dataInicio)} a ${formatarData(planejamento.dataFim)}',
+                  ),
+                  onTap: () async {
+                    await selecionarPlanejamento(planejamento.id);
+                    if (!mounted) return;
+                    setState(() {});
+                    widget.onMetaChanged?.call();
+                  },
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: 'Editar',
+                        onPressed: () => abrirEditor(planejamento),
+                        icon: const Icon(Icons.edit),
+                      ),
+                      IconButton(
+                        tooltip: 'Excluir',
+                        onPressed: () => excluir(planejamento),
+                        icon: const Icon(Icons.delete, color: Colors.redAccent),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 255, 255, 255)),
-              onPressed: selecionarDataInicio,
-              child: Text(
-                'Data Início: ${dataInicio.day}/${dataInicio.month}/${dataInicio.year}',
+            if (selecionado != null) ...[
+              const SizedBox(height: 20),
+              Text(
+                'Resumo: ${selecionado.nome}',
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-              
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 255, 255, 255)),
-              onPressed: selecionarDataFim,
-              child: Text(
-                'Data Final: ${dataFim.day}/${dataFim.month}/${dataFim.year}',
+              const SizedBox(height: 12),
+              resumo(
+                'Meta da Bolsa',
+                formatarMoedaGlobal(metaBolsaGlobal),
+                Icons.flag,
+                Colors.blue,
               ),
-            ),
-            const SizedBox(height: 20),
-            infoCard(
-              titulo: 'Meta da Bolsa',
-              valor: 'R\$ ${metaBolsaGlobal.toStringAsFixed(2)}',
-              icone: Icons.flag,
-              cor: Colors.blue,
-            ),
-            infoCard(
-              titulo: 'Total Comprado',
-              valor: 'R\$ ${totalComprado().toStringAsFixed(2)}',
-              icone: Icons.shopping_cart,
-              cor: Colors.orange,
-            ),
-            infoCard(
-              titulo: 'Quanto Falta',
-              valor: 'R\$ ${quantoFalta().toStringAsFixed(2)}',
-              icone: Icons.trending_up,
-              cor: Colors.red,
-            ),
-            infoCard(
-              titulo: 'Dias Restantes',
-              valor: '${diasRestantes()} dias',
-              icone: Icons.calendar_month,
-              cor: Colors.blue,
-            ),
-            infoCard(
-              titulo: 'Meta Diária',
-              valor: 'R\$ ${mediaNecessaria().toStringAsFixed(2)}',
-              icone: Icons.calculate,
-              cor: Colors.purple,
-            ),
-            const SizedBox(height: 20),
-            LinearProgressIndicator(value: progresso(), minHeight: 14),
-            const SizedBox(height: 10),
-            Text('${(progresso() * 100).toStringAsFixed(1)}% concluído'),
+              resumo(
+                'Total Comprado',
+                formatarMoedaGlobal(totalCompradoGlobal()),
+                Icons.shopping_cart,
+                Colors.orange,
+              ),
+              resumo(
+                'Quanto Falta',
+                formatarMoedaGlobal(falta.toDouble()),
+                Icons.trending_up,
+                Colors.red,
+              ),
+              resumo(
+                'Dias Restantes',
+                '$diasRestantes dias',
+                Icons.calendar_month,
+                Colors.blue,
+              ),
+              resumo(
+                'Meta Diária',
+                formatarMoedaGlobal((falta / diasRestantes).toDouble()),
+                Icons.calculate,
+                Colors.purple,
+              ),
+              const SizedBox(height: 8),
+              LinearProgressIndicator(value: progresso, minHeight: 14),
+              const SizedBox(height: 8),
+              Text(
+                '${(progresso * 100).toStringAsFixed(1)}% concluído',
+                textAlign: TextAlign.center,
+              ),
+            ],
           ],
         ),
       ),
