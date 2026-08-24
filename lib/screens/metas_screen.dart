@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:intl/intl.dart';
+import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import '../data/app_data.dart';
 
 class MetasScreen extends StatefulWidget {
@@ -17,7 +18,7 @@ class _MetasScreenState extends State<MetasScreen> {
   @override
   void initState() {
     super.initState();
-    metaController.text = metaBolsaGlobal.toStringAsFixed(0);
+    metaController.text = formatarMoedaSemSimbolo(metaBolsaGlobal);
   }
 
   @override
@@ -26,8 +27,16 @@ class _MetasScreenState extends State<MetasScreen> {
     super.dispose();
   }
 
+  String formatarMoeda(double valor) {
+    return NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$ ').format(valor);
+  }
+
+  String formatarMoedaSemSimbolo(double valor) {
+    return NumberFormat.decimalPattern('pt_BR').format(valor);
+  }
+
   Future<void> abrirAcoesDaMeta() async {
-    metaController.text = metaBolsaGlobal.toStringAsFixed(0);
+    metaController.text = formatarMoedaSemSimbolo(metaBolsaGlobal);
 
     await showDialog(
       context: context,
@@ -37,6 +46,12 @@ class _MetasScreenState extends State<MetasScreen> {
           content: TextField(
             controller: metaController,
             keyboardType: TextInputType.number,
+            inputFormatters: [
+              CurrencyInputFormatter(
+                thousandSeparator: ThousandSeparator.Period,
+                mantissaLength: 0, // sem centavos
+              ),
+            ],
             decoration: const InputDecoration(
               labelText: 'Novo valor da meta',
               border: OutlineInputBorder(),
@@ -57,7 +72,9 @@ class _MetasScreenState extends State<MetasScreen> {
                 if (!mounted) return;
 
                 setState(() {
-                  metaController.text = metaBolsaGlobal.toStringAsFixed(0);
+                  metaController.text = formatarMoedaSemSimbolo(
+                    metaBolsaGlobal,
+                  );
                 });
 
                 Navigator.pop(context);
@@ -71,9 +88,14 @@ class _MetasScreenState extends State<MetasScreen> {
 
             ElevatedButton(
               onPressed: () async {
-                double? valor = double.tryParse(metaController.text);
+                final texto = metaController.text.replaceAll('.', '');
+
+                double? valor = double.tryParse(texto);
 
                 if (valor == null || valor <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Digite um valor válido')),
+                  );
                   return;
                 }
 
@@ -160,7 +182,7 @@ class _MetasScreenState extends State<MetasScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Meta: R\$ ${metaBolsaGlobal.toStringAsFixed(2)}',
+                    'Meta: ${formatarMoeda(metaBolsaGlobal)}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -179,14 +201,14 @@ class _MetasScreenState extends State<MetasScreen> {
                   const SizedBox(height: 20),
 
                   Text(
-                    'Vendido: R\$ ${totalVendido().toStringAsFixed(2)}',
+                    'Vendido: ${formatarMoeda(totalVendido())}',
                     style: const TextStyle(color: Colors.white, fontSize: 18),
                   ),
 
                   const SizedBox(height: 10),
 
                   Text(
-                    'Falta: R\$ ${falta().toStringAsFixed(2)}',
+                    'Falta: ${formatarMoeda(falta())}',
                     style: const TextStyle(color: Colors.white, fontSize: 18),
                   ),
 
@@ -200,7 +222,7 @@ class _MetasScreenState extends State<MetasScreen> {
                   const SizedBox(height: 10),
 
                   Text(
-                    'Meta diária: R\$ ${metaDiariaNecessaria().toStringAsFixed(2)}',
+                    'Meta diária: ${formatarMoeda(metaDiariaNecessaria())}',
                     style: const TextStyle(color: Colors.white, fontSize: 18),
                   ),
 

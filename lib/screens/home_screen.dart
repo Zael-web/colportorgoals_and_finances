@@ -260,11 +260,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
 
                 const SizedBox(width: 12),
-
                 Expanded(
                   child: dashboardCard(
                     titulo: 'Meta/Dia',
-                    valor: 'R\$ 720',
+                    valor: 'R\$ ${metaDiariaNecessaria().toStringAsFixed(2)}',
                     cor: Colors.purple,
                     icone: Icons.flag,
                   ),

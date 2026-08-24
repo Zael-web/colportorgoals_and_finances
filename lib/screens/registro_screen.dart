@@ -933,6 +933,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: formaPagamentoSelecionada,
+                        dropdownColor: const Color.fromARGB(255, 11, 41, 77),
                         decoration: const InputDecoration(
                           labelText: 'Forma de pagamento',
                           border: OutlineInputBorder(),
@@ -983,12 +984,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                                     : 'Salvar Alteração',
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(
-                                  255,
-                                  11,
-                                  41,
-                                  77,
-                                ),
+                                backgroundColor: const Color.fromARGB(255, 9, 197, 56).withValues(alpha: 0.8),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
