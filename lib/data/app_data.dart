@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
@@ -9,6 +10,8 @@ import '../models/campanha.dart';
 import '../services/firestore_service.dart';
 
 List<Registro> registrosGlobais = [];
+
+final ValueNotifier<int> dadosGlobaisVersion = ValueNotifier<int>(0);
 
 final FirestoreService _firestoreService = FirestoreService();
 
@@ -55,6 +58,20 @@ String formatarNumeroGlobal(double valor, {int casas = 2}) {
   ).format(valor);
 }
 
+const double percentualDizimo = 0.10;
+
+double calcularDizimoMaterial(double valorMaterial) {
+  return valorMaterial * percentualDizimo;
+}
+
+double calcularValorPagoMaterial(double valorMaterial) {
+  return valorMaterial + calcularDizimoMaterial(valorMaterial);
+}
+
+double calcularLucroRegistro(Registro registro) {
+  return registro.vendido - registro.comprado - registro.taxaCartao;
+}
+
 Future<void> salvarRegistrosGlobais() async {
   final prefs = await SharedPreferences.getInstance();
 
@@ -74,6 +91,33 @@ Future<void> carregarRegistrosGlobais() async {
     registrosGlobais = lista.map((item) {
       return Registro.fromMap(jsonDecode(item));
     }).toList();
+
+    var houveMigracao = false;
+    registrosGlobais = registrosGlobais.map((registro) {
+      if (registro.versaoCalculo >= 2) {
+        return registro;
+      }
+
+      houveMigracao = true;
+      final valorMaterial = registro.comprado;
+      final dizimo = calcularDizimoMaterial(valorMaterial);
+      return Registro(
+        material: registro.material,
+        vendido: registro.vendido,
+        comprado: calcularValorPagoMaterial(valorMaterial),
+        quantidade: registro.quantidade,
+        observacao: registro.observacao,
+        data: registro.data,
+        formaPagamento: registro.formaPagamento,
+        dizimo: dizimo,
+        taxaCartao: registro.taxaCartao,
+        valorLiquido: registro.vendido - dizimo - registro.taxaCartao,
+      );
+    }).toList();
+
+    if (houveMigracao) {
+      await salvarRegistrosGlobais();
+    }
   }
 }
 
@@ -92,6 +136,16 @@ double totalVendidoGlobal() {
 
   for (var registro in registrosGlobais) {
     total += registro.vendido;
+  }
+
+  return total;
+}
+
+double totalLucroGlobal() {
+  double total = 0;
+
+  for (final registro in registrosGlobais) {
+    total += calcularLucroRegistro(registro);
   }
 
   return total;
@@ -246,6 +300,8 @@ Future<void> excluirPlanejamento() async {
     await prefs.remove('planejamentoSelecionadoId');
     await salvarListaPlanejamentos();
   }
+
+  dadosGlobaisVersion.value++;
 }
 
 Future<void> salvarListaPlanejamentos() async {
@@ -282,6 +338,13 @@ Future<void> carregarPlanejamentos() async {
       ),
     ];
     await salvarListaPlanejamentos();
+    await selecionarPlanejamento('principal');
+    return;
+  }
+
+  if (planejamentosGlobais.isEmpty) {
+    planejamentoSelecionadoId = null;
+    return;
   }
 
   planejamentoSelecionadoId = prefs.getString('planejamentoSelecionadoId');
@@ -306,6 +369,7 @@ Future<void> selecionarPlanejamento(String id) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('planejamentoSelecionadoId', id);
   await salvarPlanejamento();
+  dadosGlobaisVersion.value++;
 }
 
 Future<void> salvarOuAtualizarPlanejamento(Planejamento planejamento) async {
@@ -323,14 +387,19 @@ Future<void> salvarOuAtualizarPlanejamento(Planejamento planejamento) async {
 
 Future<void> excluirPlanejamentoPorId(String id) async {
   planejamentosGlobais.removeWhere((item) => item.id == id);
-  if (planejamentosGlobais.isEmpty) {
-    planejamentoSelecionadoId = null;
-    await excluirPlanejamento();
-    await salvarListaPlanejamentos();
-    return;
-  }
+
   if (planejamentoSelecionadoId == id) {
-    await selecionarPlanejamento(planejamentosGlobais.first.id);
+    planejamentoSelecionadoId = null;
+    metaBolsaGlobal = 0;
+    dataInicioGlobal = DateTime.now();
+    dataFimGlobal = DateTime.now().add(const Duration(days: 30));
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('planejamentoSelecionadoId');
+    await prefs.remove('metaBolsaGlobal');
+    await prefs.remove('dataInicioGlobal');
+    await prefs.remove('dataFimGlobal');
   }
+
   await salvarListaPlanejamentos();
+  dadosGlobaisVersion.value++;
 }

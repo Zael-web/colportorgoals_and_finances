@@ -9,6 +9,7 @@ class Registro {
   final double dizimo;
   final double taxaCartao;
   final double valorLiquido;
+  final int versaoCalculo;
 
   Registro({
     required this.material,
@@ -21,6 +22,7 @@ class Registro {
     required this.dizimo,
     required this.taxaCartao,
     required this.valorLiquido,
+    this.versaoCalculo = 2,
   });
 
   Map<String, dynamic> toMap() {
@@ -35,12 +37,11 @@ class Registro {
       'dizimo': dizimo,
       'taxaCartao': taxaCartao,
       'valorLiquido': valorLiquido,
+      'versaoCalculo': versaoCalculo,
     };
   }
 
-  factory Registro.fromMap(
-    Map<String, dynamic> map,
-  ) {
+  factory Registro.fromMap(Map<String, dynamic> map) {
     double toDouble(dynamic value) {
       if (value is num) return value.toDouble();
       return double.tryParse(value?.toString() ?? '') ?? 0;
@@ -50,6 +51,9 @@ class Registro {
     final dizimo = toDouble(map['dizimo']);
     final taxaCartao = toDouble(map['taxaCartao']);
     final valorLiquido = toDouble(map['valorLiquido']);
+    final versaoCalculo = map['versaoCalculo'] is num
+        ? (map['versaoCalculo'] as num).toInt()
+        : 1;
 
     return Registro(
       material: map['material'] ?? '',
@@ -64,6 +68,7 @@ class Registro {
       valorLiquido: valorLiquido == 0 && vendido > 0
           ? vendido - dizimo - taxaCartao
           : valorLiquido,
+      versaoCalculo: versaoCalculo,
     );
   }
 }

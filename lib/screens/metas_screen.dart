@@ -19,12 +19,20 @@ class _MetasScreenState extends State<MetasScreen> {
   void initState() {
     super.initState();
     metaController.text = formatarMoedaSemSimbolo(metaBolsaGlobal);
+    dadosGlobaisVersion.addListener(_atualizarDados);
   }
 
   @override
   void dispose() {
+    dadosGlobaisVersion.removeListener(_atualizarDados);
     metaController.dispose();
     super.dispose();
+  }
+
+  void _atualizarDados() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   String formatarMoeda(double valor) {
@@ -121,8 +129,8 @@ class _MetasScreenState extends State<MetasScreen> {
     );
   }
 
-  double totalVendido() {
-    return totalVendidoGlobal();
+  double totalPago() {
+    return totalCompradoGlobal();
   }
 
   double progresso() {
@@ -130,7 +138,7 @@ class _MetasScreenState extends State<MetasScreen> {
       return 0;
     }
 
-    double valor = totalVendido() / metaBolsaGlobal;
+    double valor = totalPago() / metaBolsaGlobal;
 
     if (valor > 1) {
       return 1;
@@ -140,7 +148,7 @@ class _MetasScreenState extends State<MetasScreen> {
   }
 
   double falta() {
-    double valor = metaBolsaGlobal - totalVendido();
+    double valor = metaBolsaGlobal - totalPago();
 
     if (valor < 0) {
       return 0;
@@ -212,7 +220,7 @@ class _MetasScreenState extends State<MetasScreen> {
                         const SizedBox(height: 20),
 
                         Text(
-                          'Vendido: ${formatarMoeda(totalVendido())}',
+                          'Pago (material + dízimo): ${formatarMoeda(totalPago())}',
                           style: TextStyle(
                             color: temaEscuro
                                 ? Colors.white

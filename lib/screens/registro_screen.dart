@@ -74,17 +74,23 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
   double get valorVendaUnitario => materialSelecionado?.valorVenda ?? 0;
 
-  double get valorCompradoCalculado => valorCompraUnitario * quantidadeDigitada;
+  double get valorMaterialCalculado => valorCompraUnitario * quantidadeDigitada;
+
+  double get valorCompradoCalculado =>
+      calcularValorPagoMaterial(valorMaterialCalculado);
 
   double get valorVendidoCalculado => valorVendaUnitario * quantidadeDigitada;
 
-  double get dizimoCalculado => valorVendidoCalculado * 0.10;
+  double get dizimoCalculado => calcularDizimoMaterial(valorMaterialCalculado);
 
   double get taxaCartaoCalculada =>
       formaPagamentoSelecionada == 'Cartão' ? valorVendidoCalculado * 0.03 : 0;
 
   double get valorLiquidoCalculado =>
       valorVendidoCalculado - dizimoCalculado - taxaCartaoCalculada;
+
+  double get lucroCalculado =>
+      valorVendidoCalculado - valorCompradoCalculado - taxaCartaoCalculada;
 
   List<int> get _indicesVisiveis {
     final indices = <int>[];
@@ -224,6 +230,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
       }
     });
 
+    dadosGlobaisVersion.value++;
     await salvarRegistrosGlobais();
     widget.atualizarHome();
 
@@ -256,9 +263,10 @@ class _RegistroScreenState extends State<RegistroScreen> {
       return;
     }
 
-    final valorComprado = valorCompraUnitario * quantidade;
+    final valorMaterial = valorCompraUnitario * quantidade;
+    final valorComprado = calcularValorPagoMaterial(valorMaterial);
     final valorVendido = valorVendaUnitario * quantidade;
-    final dizimo = valorVendido * 0.10;
+    final dizimo = calcularDizimoMaterial(valorMaterial);
     final taxaCartao = formaPagamentoSelecionada == 'Cartão'
         ? valorVendido * 0.03
         : 0.0;
@@ -286,6 +294,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
       limparFormulario();
     });
 
+    dadosGlobaisVersion.value++;
     await salvarRegistrosGlobais();
     widget.atualizarHome();
 
@@ -607,8 +616,13 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 ),
                 _chipInfo(
                   Icons.inventory_2,
-                  'Comprado ${formatarMoeda(registro.comprado)}',
+                  'Pago ${formatarMoeda(registro.comprado)}',
                   Colors.purple,
+                ),
+                _chipInfo(
+                  Icons.trending_up,
+                  'Lucro ${formatarMoeda(calcularLucroRegistro(registro))}',
+                  Colors.teal,
                 ),
               ],
             ),
@@ -759,7 +773,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
           ),
           const SizedBox(height: 10),
           _summaryCard(
-            titulo: 'Valor comprado',
+            titulo: 'Valor pago (material + dízimo)',
             valor: formatarMoeda(valorCompradoCalculado),
             icone: Icons.inventory_2,
             cor: corTexto,
@@ -773,7 +787,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
           ),
           const SizedBox(height: 10),
           _summaryCard(
-            titulo: 'Dízimo',
+            titulo: 'Dízimo (10% do material)',
             valor: formatarMoeda(dizimoCalculado),
             icone: Icons.percent,
             cor: corTexto,
@@ -790,6 +804,13 @@ class _RegistroScreenState extends State<RegistroScreen> {
             titulo: 'Valor líquido',
             valor: formatarMoeda(valorLiquidoCalculado),
             icone: Icons.account_balance_wallet,
+            cor: corTexto,
+          ),
+          const SizedBox(height: 10),
+          _summaryCard(
+            titulo: 'Lucro da venda',
+            valor: formatarMoeda(lucroCalculado),
+            icone: Icons.savings,
             cor: corTexto,
           ),
         ],
@@ -874,7 +895,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                       ),
                       const SizedBox(height: 10),
                       _summaryCard(
-                        titulo: 'Total comprado',
+                        titulo: 'Total pago (material + dízimo)',
                         valor: formatarMoeda(totalComprado),
                         icone: Icons.shopping_cart,
                         cor: corTextoPainel,

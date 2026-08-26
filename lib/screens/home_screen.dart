@@ -109,6 +109,24 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  @override
+  void initState() {
+    super.initState();
+    dadosGlobaisVersion.addListener(_atualizarDados);
+  }
+
+  @override
+  void dispose() {
+    dadosGlobaisVersion.removeListener(_atualizarDados);
+    super.dispose();
+  }
+
+  void _atualizarDados() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   double totalVendido() {
     double total = 0;
 
@@ -146,9 +164,9 @@ class _DashboardPageState extends State<DashboardPage> {
         ? const Color(0xFF0B294D)
         : const Color(0xFFDCECF8);
     final corTextoPainel = temaEscuro ? Colors.white : const Color(0xFF123B68);
-    double progresso = metaBolsaGlobal == 0
-        ? 0
-        : (totalComprado() / metaBolsaGlobal * 100);
+    final progresso = metaBolsaGlobal == 0
+        ? 0.0
+        : (totalComprado() / metaBolsaGlobal * 100).clamp(0.0, 100.0);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Colportor App')),
@@ -247,7 +265,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'totalComprado: ${formatarMoedaGlobal(totalComprado())}',
+                    'Pago (material + dízimo): ${formatarMoedaGlobal(totalComprado())}',
                     style: TextStyle(color: corTextoPainel, fontSize: 16),
                   ),
                 ],
@@ -278,13 +296,22 @@ class _DashboardPageState extends State<DashboardPage> {
 
                 Expanded(
                   child: dashboardCard(
-                    titulo: 'Comprado',
+                    titulo: 'Pago',
                     valor: formatarMoedaGlobal(totalComprado()),
                     cor: Colors.orange,
                     icone: Icons.shopping_cart,
                   ),
                 ),
               ],
+            ),
+
+            const SizedBox(height: 12),
+
+            dashboardCard(
+              titulo: 'Lucro total',
+              valor: formatarMoedaGlobal(totalLucroGlobal()),
+              cor: Colors.teal,
+              icone: Icons.savings,
             ),
 
             const SizedBox(height: 12),

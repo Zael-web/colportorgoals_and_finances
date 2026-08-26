@@ -13,6 +13,24 @@ class PlanejamentoScreen extends StatefulWidget {
 }
 
 class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
+  @override
+  void initState() {
+    super.initState();
+    dadosGlobaisVersion.addListener(_atualizarDados);
+  }
+
+  @override
+  void dispose() {
+    dadosGlobaisVersion.removeListener(_atualizarDados);
+    super.dispose();
+  }
+
+  void _atualizarDados() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   String formatarData(DateTime data) =>
       '${data.day}/${data.month}/${data.year}';
 
@@ -355,7 +373,7 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                 Colors.blue,
               ),
               resumo(
-                'Total Comprado',
+                'Total pago (material + dízimo)',
                 formatarMoedaGlobal(totalCompradoGlobal()),
                 Icons.shopping_cart,
                 Colors.orange,
