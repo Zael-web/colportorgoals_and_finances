@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'registro_screen.dart';
-import 'metas_screen.dart';
-
-import 'materiais_screen.dart';
+import '../services/auth_service.dart';
 import '../data/app_data.dart';
+import 'materiais_screen.dart';
+import 'metas_screen.dart';
 import 'planejamento_screen.dart';
+import 'registro_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -51,20 +51,39 @@ class _HomeScreenState extends State<HomeScreen> {
           Positioned(
             top: MediaQuery.paddingOf(context).top + 4,
             right: 8,
-            child: Material(
-              color: Theme.of(
-                context,
-              ).colorScheme.surface.withValues(alpha: 0.85),
-              shape: const CircleBorder(),
-              child: IconButton(
-                tooltip: widget.modoEscuro
-                    ? 'Ativar modo claro'
-                    : 'Ativar modo escuro',
-                onPressed: widget.onAlternarTema,
-                icon: Icon(
-                  widget.modoEscuro ? Icons.light_mode : Icons.dark_mode,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Material(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surface.withValues(alpha: 0.85),
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    tooltip: 'Sair da conta',
+                    onPressed: () async {
+                      await AuthService().sair();
+                    },
+                    icon: const Icon(Icons.logout),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Material(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surface.withValues(alpha: 0.85),
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    tooltip: widget.modoEscuro
+                        ? 'Ativar modo claro'
+                        : 'Ativar modo escuro',
+                    onPressed: widget.onAlternarTema,
+                    icon: Icon(
+                      widget.modoEscuro ? Icons.light_mode : Icons.dark_mode,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -167,6 +186,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final progresso = metaBolsaGlobal == 0
         ? 0.0
         : (totalComprado() / metaBolsaGlobal * 100).clamp(0.0, 100.0);
+    final nomeUsuario = AuthService().getNomeUsuarioLogado();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Colportor App')),
@@ -178,9 +198,9 @@ class _DashboardPageState extends State<DashboardPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
 
           children: [
-            const Text(
-              'Bom dia, Colportor 👋',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            Text(
+              'Bom dia, $nomeUsuario 👋',
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 6),

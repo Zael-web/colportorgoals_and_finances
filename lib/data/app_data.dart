@@ -1,8 +1,9 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/registro.dart';
 import '../models/material_model.dart';
@@ -15,28 +16,32 @@ final ValueNotifier<int> dadosGlobaisVersion = ValueNotifier<int>(0);
 
 final FirestoreService _firestoreService = FirestoreService();
 
-List<MaterialModel> materiaisGlobais = [
-  MaterialModel(
-    nome: 'A Última Chamada',
-    valorCompra: 105.93,
-    valorVenda: 211.86,
-  ),
-  MaterialModel(
-    nome: 'Como Formar Filhos Vencedores',
-    valorCompra: 126.24,
-    valorVenda: 252.48,
-  ),
-  MaterialModel(
-    nome: '21 Dias para Mudar',
-    valorCompra: 106.32,
-    valorVenda: 212.64,
-  ),
-  MaterialModel(
-    nome: 'Revolucione seu Futuro',
-    valorCompra: 93.99,
-    valorVenda: 187.98,
-  ),
-];
+List<MaterialModel> _materiaisPadrao() {
+  return [
+    MaterialModel(
+      nome: 'A Última Chamada',
+      valorCompra: 105.93,
+      valorVenda: 211.86,
+    ),
+    MaterialModel(
+      nome: 'Como Formar Filhos Vencedores',
+      valorCompra: 126.24,
+      valorVenda: 252.48,
+    ),
+    MaterialModel(
+      nome: '21 Dias para Mudar',
+      valorCompra: 106.32,
+      valorVenda: 212.64,
+    ),
+    MaterialModel(
+      nome: 'Revolucione seu Futuro',
+      valorCompra: 93.99,
+      valorVenda: 187.98,
+    ),
+  ];
+}
+
+List<MaterialModel> materiaisGlobais = _materiaisPadrao();
 
 double metaBolsaGlobal = 18000;
 
@@ -46,6 +51,30 @@ DateTime dataFimGlobal = DateTime.now().add(const Duration(days: 30));
 
 List<Planejamento> planejamentosGlobais = [];
 String? planejamentoSelecionadoId;
+
+String _keyDoUsuario(String chave) {
+  final uid = FirebaseAuth.instance.currentUser?.uid ?? 'anon';
+  return '${uid}_$chave';
+}
+
+void resetarDadosUsuarioAtual() {
+  registrosGlobais = [];
+  materiaisGlobais = _materiaisPadrao();
+  planejamentosGlobais = [];
+  planejamentoSelecionadoId = null;
+  metaBolsaGlobal = 18000;
+  dataInicioGlobal = DateTime.now();
+  dataFimGlobal = DateTime.now().add(const Duration(days: 30));
+}
+
+Future<void> carregarDadosUsuarioAtual() async {
+  resetarDadosUsuarioAtual();
+
+  await carregarRegistrosGlobais();
+  await carregarMateriaisGlobais();
+  await carregarPlanejamento();
+  await carregarPlanejamentos();
+}
 
 String formatarMoedaGlobal(double valor) {
   return NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$ ').format(valor);
@@ -79,13 +108,14 @@ Future<void> salvarRegistrosGlobais() async {
     return jsonEncode(registro.toMap());
   }).toList();
 
-  await prefs.setStringList('registros', lista);
+  await prefs.setStringList(_keyDoUsuario('registros'), lista);
 }
 
 Future<void> carregarRegistrosGlobais() async {
   final prefs = await SharedPreferences.getInstance();
 
-  List<String>? lista = prefs.getStringList('registros');
+  final key = _keyDoUsuario('registros');
+  List<String>? lista = prefs.getStringList(key);
 
   if (lista != null) {
     registrosGlobais = lista.map((item) {
@@ -197,12 +227,15 @@ Future<void> salvarMateriaisGlobais() async {
     return jsonEncode(material.toMap());
   }).toList();
 
-  await prefs.setStringList('materiais', lista);
+  await prefs.setStringList(_keyDoUsuario('materiais'), lista);
 }
 
 Future<void> carregarMateriaisGlobais() async {
   try {
-    final materiaisFirestore = await _firestoreService.listarMateriais().first;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final materiaisFirestore = await _firestoreService
+        .listarMateriais(userId: uid)
+        .first;
 
     if (materiaisFirestore.isNotEmpty) {
       materiaisGlobais = materiaisFirestore;
@@ -213,8 +246,9 @@ Future<void> carregarMateriaisGlobais() async {
   }
 
   final prefs = await SharedPreferences.getInstance();
+  final key = _keyDoUsuario('materiais');
 
-  List<String>? lista = prefs.getStringList('materiais');
+  List<String>? lista = prefs.getStringList(key);
 
   if (lista != null && lista.isNotEmpty) {
     materiaisGlobais = lista.map((item) {
@@ -236,11 +270,15 @@ Future<void> carregarMateriaisGlobais() async {
 Future<void> salvarPlanejamento() async {
   final prefs = await SharedPreferences.getInstance();
 
-  await prefs.setDouble('metaBolsaGlobal', metaBolsaGlobal);
-
-  await prefs.setString('dataInicioGlobal', dataInicioGlobal.toIso8601String());
-
-  await prefs.setString('dataFimGlobal', dataFimGlobal.toIso8601String());
+  await prefs.setDouble(_keyDoUsuario('metaBolsaGlobal'), metaBolsaGlobal);
+  await prefs.setString(
+    _keyDoUsuario('dataInicioGlobal'),
+    dataInicioGlobal.toIso8601String(),
+  );
+  await prefs.setString(
+    _keyDoUsuario('dataFimGlobal'),
+    dataFimGlobal.toIso8601String(),
+  );
 
   if (planejamentoSelecionadoId != null) {
     final index = planejamentosGlobais.indexWhere(
@@ -262,11 +300,10 @@ Future<void> salvarPlanejamento() async {
 Future<void> carregarPlanejamento() async {
   final prefs = await SharedPreferences.getInstance();
 
-  metaBolsaGlobal = prefs.getDouble('metaBolsaGlobal') ?? 18000;
+  metaBolsaGlobal = prefs.getDouble(_keyDoUsuario('metaBolsaGlobal')) ?? 18000;
 
-  String? inicio = prefs.getString('dataInicioGlobal');
-
-  String? fim = prefs.getString('dataFimGlobal');
+  String? inicio = prefs.getString(_keyDoUsuario('dataInicioGlobal'));
+  String? fim = prefs.getString(_keyDoUsuario('dataFimGlobal'));
 
   if (inicio != null) {
     dataInicioGlobal = DateTime.parse(inicio);
@@ -280,11 +317,9 @@ Future<void> carregarPlanejamento() async {
 Future<void> excluirPlanejamento() async {
   final prefs = await SharedPreferences.getInstance();
 
-  await prefs.remove('metaBolsaGlobal');
-
-  await prefs.remove('dataInicioGlobal');
-
-  await prefs.remove('dataFimGlobal');
+  await prefs.remove(_keyDoUsuario('metaBolsaGlobal'));
+  await prefs.remove(_keyDoUsuario('dataInicioGlobal'));
+  await prefs.remove(_keyDoUsuario('dataFimGlobal'));
 
   metaBolsaGlobal = 0;
 
@@ -297,7 +332,7 @@ Future<void> excluirPlanejamento() async {
       (item) => item.id == planejamentoSelecionadoId,
     );
     planejamentoSelecionadoId = null;
-    await prefs.remove('planejamentoSelecionadoId');
+    await prefs.remove(_keyDoUsuario('planejamentoSelecionadoId'));
     await salvarListaPlanejamentos();
   }
 
@@ -307,7 +342,7 @@ Future<void> excluirPlanejamento() async {
 Future<void> salvarListaPlanejamentos() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setStringList(
-    'planejamentos',
+    _keyDoUsuario('planejamentos'),
     planejamentosGlobais
         .map((planejamento) => jsonEncode(planejamento.toMap()))
         .toList(),
@@ -316,7 +351,7 @@ Future<void> salvarListaPlanejamentos() async {
 
 Future<void> carregarPlanejamentos() async {
   final prefs = await SharedPreferences.getInstance();
-  final lista = prefs.getStringList('planejamentos');
+  final lista = prefs.getStringList(_keyDoUsuario('planejamentos'));
 
   if (lista != null) {
     planejamentosGlobais = lista
@@ -347,7 +382,7 @@ Future<void> carregarPlanejamentos() async {
     return;
   }
 
-  planejamentoSelecionadoId = prefs.getString('planejamentoSelecionadoId');
+  planejamentoSelecionadoId = prefs.getString(_keyDoUsuario('planejamentoSelecionadoId'));
   if (planejamentosGlobais.isEmpty) {
     planejamentoSelecionadoId = null;
     return;
@@ -367,7 +402,7 @@ Future<void> selecionarPlanejamento(String id) async {
   dataInicioGlobal = planejamento.dataInicio;
   dataFimGlobal = planejamento.dataFim;
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('planejamentoSelecionadoId', id);
+  await prefs.setString(_keyDoUsuario('planejamentoSelecionadoId'), id);
   await salvarPlanejamento();
   dadosGlobaisVersion.value++;
 }
@@ -394,10 +429,10 @@ Future<void> excluirPlanejamentoPorId(String id) async {
     dataInicioGlobal = DateTime.now();
     dataFimGlobal = DateTime.now().add(const Duration(days: 30));
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('planejamentoSelecionadoId');
-    await prefs.remove('metaBolsaGlobal');
-    await prefs.remove('dataInicioGlobal');
-    await prefs.remove('dataFimGlobal');
+    await prefs.remove(_keyDoUsuario('planejamentoSelecionadoId'));
+    await prefs.remove(_keyDoUsuario('metaBolsaGlobal'));
+    await prefs.remove(_keyDoUsuario('dataInicioGlobal'));
+    await prefs.remove(_keyDoUsuario('dataFimGlobal'));
   }
 
   await salvarListaPlanejamentos();

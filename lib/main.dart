@@ -1,11 +1,15 @@
-import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'firebase_options.dart';
-
-import 'screens/home_screen.dart';
 import 'data/app_data.dart';
+import 'firebase_options.dart';
+import 'screens/home_screen.dart';
+import 'screens/login_screen.dart';
+import 'services/auth_service.dart';
 
 const Color _navyStart = Color(0xFF071826);
 const Color _navyMid = Color(0xFF0B2A4D);
@@ -14,14 +18,14 @@ const Color _navyEnd = Color(0xFF123B68);
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Dados locais
-  await carregarRegistrosGlobais();
-  await carregarMateriaisGlobais();
-  await carregarPlanejamento();
-  await carregarPlanejamentos();
+  if (kIsWeb) {
+    const webClientId = 'SEU_WEB_CLIENT_ID_DO_GOOGLE';
+    await GoogleSignIn.instance.initialize(clientId: webClientId);
+  } else {
+    await GoogleSignIn.instance.initialize();
+  }
 
   runApp(const MyApp());
 }
@@ -132,7 +136,22 @@ class _MyAppState extends State<MyApp> {
           child: child ?? const SizedBox.shrink(),
         );
       },
-      home: HomeScreen(modoEscuro: _modoEscuro, onAlternarTema: _alternarTema),
+      home: StreamBuilder<User?>(
+        stream: AuthService().authStateChanges(),
+        initialData: FirebaseAuth.instance.currentUser,
+        builder: (context, snapshot) {
+          final usuario = snapshot.data;
+          if (usuario == null) {
+            return const LoginScreen();
+          }
+
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            await carregarDadosUsuarioAtual();
+          });
+
+          return HomeScreen(modoEscuro: _modoEscuro, onAlternarTema: _alternarTema);
+        },
+      ),
     );
   }
 }
