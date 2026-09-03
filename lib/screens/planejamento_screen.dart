@@ -48,9 +48,16 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
           ? ''
           : formatarNumeroGlobal(planejamento.meta, casas: 0),
     );
+    final diasController = TextEditingController(
+      text: planejamento?.quantidadeDias.toString() ?? '30',
+    );
     var dataInicio = planejamento?.dataInicio ?? DateTime.now();
-    var dataFim =
-        planejamento?.dataFim ?? DateTime.now().add(const Duration(days: 30));
+    var feriados = [...?planejamento?.feriados];
+    var dataFim = Planejamento.calcularDataFim(
+      dataInicio: dataInicio,
+      quantidadeDias: planejamento?.quantidadeDias ?? 30,
+      feriados: feriados,
+    );
 
     final resultado = await showDialog<Planejamento>(
       context: context,
@@ -94,6 +101,77 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: diasController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Quantidade de dias úteis',
+                    helperText: 'Sábados, domingos e feriados serão ignorados.',
+                    helperMaxLines: 2,
+                  ),
+                  onChanged: (_) => setDialogState(() {
+                    dataFim = Planejamento.calcularDataFim(
+                      dataInicio: dataInicio,
+                      quantidadeDias: int.tryParse(diasController.text) ?? 0,
+                      feriados: feriados,
+                    );
+                  }),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Feriados',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                ...feriados.map(
+                  (feriado) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: const Icon(Icons.event_busy),
+                    title: Text(formatarData(feriado)),
+                    trailing: IconButton(
+                      tooltip: 'Remover feriado',
+                      icon: const Icon(Icons.remove_circle_outline),
+                      onPressed: () => setDialogState(() {
+                        feriados.remove(feriado);
+                        dataFim = Planejamento.calcularDataFim(
+                          dataInicio: dataInicio,
+                          quantidadeDias: int.tryParse(diasController.text) ?? 0,
+                          feriados: feriados,
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () async {
+                    final feriado = await showDatePicker(
+                      context: context,
+                      initialDate: dataInicio,
+                      firstDate: DateTime(2024),
+                      lastDate: DateTime(2035),
+                    );
+                    if (feriado != null &&
+                        !feriados.any((item) =>
+                            item.year == feriado.year &&
+                            item.month == feriado.month &&
+                            item.day == feriado.day)) {
+                      setDialogState(() {
+                        feriados.add(feriado);
+                        dataFim = Planejamento.calcularDataFim(
+                          dataInicio: dataInicio,
+                          quantidadeDias: int.tryParse(diasController.text) ?? 0,
+                          feriados: feriados,
+                        );
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Adicionar feriado'),
+                ),
                 const SizedBox(height: 16),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -122,7 +200,14 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                       lastDate: DateTime(2035),
                     );
                     if (data != null) {
-                      setDialogState(() => dataInicio = data);
+                      setDialogState(() {
+                        dataInicio = data;
+                        dataFim = Planejamento.calcularDataFim(
+                          dataInicio: dataInicio,
+                          quantidadeDias: int.tryParse(diasController.text) ?? 0,
+                          feriados: feriados,
+                        );
+                      });
                     }
                   },
                 ),
@@ -149,11 +234,20 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                     final data = await showDatePicker(
                       context: context,
                       initialDate: dataFim,
-                      firstDate: DateTime(2024),
+                      firstDate: dataInicio,
                       lastDate: DateTime(2035),
                     );
                     if (data != null) {
-                      setDialogState(() => dataFim = data);
+                      setDialogState(() {
+                        dataFim = data;
+                        diasController.text = Planejamento
+                            .calcularQuantidadeDias(
+                              dataInicio: dataInicio,
+                              dataFim: dataFim,
+                              feriados: feriados,
+                            )
+                            .toString();
+                      });
                     }
                   },
                 ),
@@ -176,10 +270,13 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                     ? textoMeta.replaceAll('.', '').replaceAll(',', '.')
                     : textoMeta;
                 final meta = double.tryParse(textoNormalizado);
+                final quantidadeDias = int.tryParse(diasController.text.trim());
                 final nome = nomeController.text.trim();
                 if (nome.isEmpty ||
                     meta == null ||
                     meta <= 0 ||
+                  quantidadeDias == null ||
+                  quantidadeDias <= 0 ||
                     dataFim.isBefore(dataInicio)) {
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
                     const SnackBar(
@@ -200,6 +297,8 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                     meta: meta,
                     dataInicio: dataInicio,
                     dataFim: dataFim,
+                    quantidadeDias: quantidadeDias,
+                    feriados: feriados,
                   ),
                 );
               },
@@ -212,6 +311,7 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
 
     nomeController.dispose();
     metaController.dispose();
+    diasController.dispose();
     if (resultado == null) return;
 
     try {
@@ -333,7 +433,7 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                   ),
                   title: Text(planejamento.nome),
                   subtitle: Text(
-                    '${formatarMoedaGlobal(planejamento.meta)} | ${formatarData(planejamento.dataInicio)} a ${formatarData(planejamento.dataFim)}',
+                    '${formatarMoedaGlobal(planejamento.meta)} | ${planejamento.quantidadeDias} dias úteis | ${formatarData(planejamento.dataInicio)} a ${formatarData(planejamento.dataFim)}',
                   ),
                   onTap: () async {
                     await selecionarPlanejamento(planejamento.id);

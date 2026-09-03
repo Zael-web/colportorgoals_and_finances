@@ -40,6 +40,30 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
+  Future<void> _confirmarSaida() async {
+    final confirmou = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Sair da conta?'),
+        content: const Text('Você deseja sair da conta?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Sim'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmou == true && mounted) {
+      await AuthService().sair();
+    }
+  }
+
   int paginaAtual = 0;
 
   @override
@@ -61,9 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   shape: const CircleBorder(),
                   child: IconButton(
                     tooltip: 'Sair da conta',
-                    onPressed: () async {
-                      await AuthService().sair();
-                    },
+                    onPressed: _confirmarSaida,
                     icon: const Icon(Icons.logout),
                   ),
                 ),
@@ -285,7 +307,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Pago (material + dízimo): ${formatarMoedaGlobal(totalComprado())}',
+                    'Total comprado + dizimo: ${formatarMoedaGlobal(totalComprado())}',
                     style: TextStyle(color: corTextoPainel, fontSize: 16),
                   ),
                 ],
@@ -316,7 +338,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
                 Expanded(
                   child: dashboardCard(
-                    titulo: 'Pago',
+                    titulo: 'Total comprado',
                     valor: formatarMoedaGlobal(totalComprado()),
                     cor: Colors.orange,
                     icone: Icons.shopping_cart,
@@ -340,7 +362,7 @@ class _DashboardPageState extends State<DashboardPage> {
               children: [
                 Expanded(
                   child: dashboardCard(
-                    titulo: 'Livros',
+                    titulo: 'Total de Livros vendidos',
                     valor: '${totalLivros()}',
                     cor: Colors.blue,
                     icone: Icons.menu_book,

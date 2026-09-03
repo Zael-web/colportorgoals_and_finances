@@ -93,6 +93,19 @@ class _MyAppState extends State<MyApp> {
         inputDecorationTheme: const InputDecorationTheme(
           filled: true,
           fillColor: Color(0xFFF3F7FB),
+          labelStyle: TextStyle(color: Color(0xFF35607F)),
+          floatingLabelStyle: TextStyle(color: _navyEnd),
+          prefixIconColor: Color(0xFF35607F),
+          suffixIconColor: Color(0xFF35607F),
+          iconColor: Color(0xFF35607F),
+          hintStyle: TextStyle(color: Color(0xFF5D7182)),
+          border: OutlineInputBorder(),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFFB9CAD8)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: _navyEnd, width: 2),
+          ),
         ),
       ),
       darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
@@ -120,6 +133,19 @@ class _MyAppState extends State<MyApp> {
         inputDecorationTheme: const InputDecorationTheme(
           filled: true,
           fillColor: Color(0xFF0F2747),
+          labelStyle: TextStyle(color: Colors.white70),
+          floatingLabelStyle: TextStyle(color: Color(0xFF8BC7FF)),
+          prefixIconColor: Color(0xFFB7D9F7),
+          suffixIconColor: Color(0xFFB7D9F7),
+          iconColor: Color(0xFFB7D9F7),
+          hintStyle: TextStyle(color: Colors.white54),
+          border: OutlineInputBorder(),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF477092)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF8BC7FF), width: 2),
+          ),
         ),
       ),
       builder: (context, child) {

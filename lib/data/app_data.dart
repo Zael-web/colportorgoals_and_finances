@@ -291,6 +291,8 @@ Future<void> salvarPlanejamento() async {
         meta: metaBolsaGlobal,
         dataInicio: dataInicioGlobal,
         dataFim: dataFimGlobal,
+        quantidadeDias: planejamentosGlobais[index].quantidadeDias,
+        feriados: planejamentosGlobais[index].feriados,
       );
       await salvarListaPlanejamentos();
     }
@@ -370,6 +372,7 @@ Future<void> carregarPlanejamentos() async {
         meta: metaBolsaGlobal,
         dataInicio: dataInicioGlobal,
         dataFim: dataFimGlobal,
+        quantidadeDias: 30,
       ),
     ];
     await salvarListaPlanejamentos();

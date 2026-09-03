@@ -169,10 +169,33 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: tema.colorScheme.primary.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
-                          Icons.person_add_alt_1_rounded,
-                          size: 72,
-                          color: tema.colorScheme.primary,
+                        child: Image.network(
+                          'https://i.ibb.co/7tX6yPQD/app1.jpg',
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.contain,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return SizedBox(
+                              width: 72,
+                              height: 72,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes == null
+                                      ? null
+                                      : loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.person_add_alt_1_rounded,
+                              size: 72,
+                              color: tema.colorScheme.primary,
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(height: 16),
