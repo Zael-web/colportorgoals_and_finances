@@ -52,6 +52,24 @@ DateTime dataFimGlobal = DateTime.now().add(const Duration(days: 30));
 List<Planejamento> planejamentosGlobais = [];
 String? planejamentoSelecionadoId;
 
+List<Registro> registrosDoPlanejamentoAtual() {
+  if (planejamentoSelecionadoId == null) return [];
+  return registrosGlobais
+      .where((registro) => registro.planejamentoId == planejamentoSelecionadoId)
+      .toList();
+}
+
+List<int> indicesRegistrosDoPlanejamentoAtual() {
+  if (planejamentoSelecionadoId == null) return [];
+  final indices = <int>[];
+  for (var index = 0; index < registrosGlobais.length; index++) {
+    if (registrosGlobais[index].planejamentoId == planejamentoSelecionadoId) {
+      indices.add(index);
+    }
+  }
+  return indices;
+}
+
 String _keyDoUsuario(String chave) {
   final uid = FirebaseAuth.instance.currentUser?.uid ?? 'anon';
   return '${uid}_$chave';
@@ -154,7 +172,7 @@ Future<void> carregarRegistrosGlobais() async {
 double totalCompradoGlobal() {
   double total = 0;
 
-  for (var registro in registrosGlobais) {
+  for (var registro in registrosDoPlanejamentoAtual()) {
     total += registro.comprado;
   }
 
@@ -164,7 +182,7 @@ double totalCompradoGlobal() {
 double totalVendidoGlobal() {
   double total = 0;
 
-  for (var registro in registrosGlobais) {
+  for (var registro in registrosDoPlanejamentoAtual()) {
     total += registro.vendido;
   }
 
@@ -174,7 +192,7 @@ double totalVendidoGlobal() {
 double totalLucroGlobal() {
   double total = 0;
 
-  for (final registro in registrosGlobais) {
+  for (final registro in registrosDoPlanejamentoAtual()) {
     total += calcularLucroRegistro(registro);
   }
 
@@ -184,7 +202,7 @@ double totalLucroGlobal() {
 int totalLivrosGlobal() {
   int total = 0;
 
-  for (var registro in registrosGlobais) {
+  for (var registro in registrosDoPlanejamentoAtual()) {
     total += registro.quantidade;
   }
 
@@ -376,6 +394,7 @@ Future<void> carregarPlanejamentos() async {
       ),
     ];
     await salvarListaPlanejamentos();
+    await _vincularRegistrosSemPlanejamento(planejamentosGlobais);
     await selecionarPlanejamento('principal');
     return;
   }
@@ -385,7 +404,9 @@ Future<void> carregarPlanejamentos() async {
     return;
   }
 
-  planejamentoSelecionadoId = prefs.getString(_keyDoUsuario('planejamentoSelecionadoId'));
+  planejamentoSelecionadoId = prefs.getString(
+    _keyDoUsuario('planejamentoSelecionadoId'),
+  );
   if (planejamentosGlobais.isEmpty) {
     planejamentoSelecionadoId = null;
     return;
@@ -395,7 +416,53 @@ Future<void> carregarPlanejamentos() async {
   )) {
     planejamentoSelecionadoId = planejamentosGlobais.first.id;
   }
+  await _vincularRegistrosSemPlanejamento(planejamentosGlobais);
   await selecionarPlanejamento(planejamentoSelecionadoId!);
+}
+
+Future<void> _vincularRegistrosSemPlanejamento(
+  List<Planejamento> planejamentos,
+) async {
+  var houveAlteracao = false;
+  registrosGlobais = registrosGlobais.map((registro) {
+    if (registro.planejamentoId != null) return registro;
+    houveAlteracao = true;
+    final planejamento = planejamentos.firstWhere(
+      (item) =>
+          !_diaAntesDoInicio(registro.data, item.dataInicio) &&
+          !_diaDepoisDoFim(registro.data, item.dataFim),
+      orElse: () => planejamentos.first,
+    );
+    return Registro(
+      material: registro.material,
+      vendido: registro.vendido,
+      comprado: registro.comprado,
+      quantidade: registro.quantidade,
+      observacao: registro.observacao,
+      data: registro.data,
+      formaPagamento: registro.formaPagamento,
+      dizimo: registro.dizimo,
+      taxaCartao: registro.taxaCartao,
+      valorLiquido: registro.valorLiquido,
+      versaoCalculo: registro.versaoCalculo,
+      planejamentoId: planejamento.id,
+    );
+  }).toList();
+  if (houveAlteracao) {
+    await salvarRegistrosGlobais();
+  }
+}
+
+bool _diaAntesDoInicio(DateTime data, DateTime inicio) {
+  final dia = DateTime(data.year, data.month, data.day);
+  final primeiroDia = DateTime(inicio.year, inicio.month, inicio.day);
+  return dia.isBefore(primeiroDia);
+}
+
+bool _diaDepoisDoFim(DateTime data, DateTime fim) {
+  final dia = DateTime(data.year, data.month, data.day);
+  final ultimoDia = DateTime(fim.year, fim.month, fim.day);
+  return dia.isAfter(ultimoDia);
 }
 
 Future<void> selecionarPlanejamento(String id) async {

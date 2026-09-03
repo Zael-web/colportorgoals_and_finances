@@ -171,7 +171,7 @@ class _DashboardPageState extends State<DashboardPage> {
   double totalVendido() {
     double total = 0;
 
-    for (var registro in registrosGlobais) {
+    for (var registro in registrosDoPlanejamentoAtual()) {
       total += registro.vendido;
     }
 
@@ -181,7 +181,7 @@ class _DashboardPageState extends State<DashboardPage> {
   double totalComprado() {
     double total = 0;
 
-    for (var registro in registrosGlobais) {
+    for (var registro in registrosDoPlanejamentoAtual()) {
       total += registro.comprado;
     }
 
@@ -191,7 +191,7 @@ class _DashboardPageState extends State<DashboardPage> {
   int totalLivros() {
     int total = 0;
 
-    for (var registro in registrosGlobais) {
+    for (var registro in registrosDoPlanejamentoAtual()) {
       total += registro.quantidade;
     }
 
@@ -390,7 +390,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
             const SizedBox(height: 16),
 
-            if (registrosGlobais.isEmpty)
+            if (registrosDoPlanejamentoAtual().isEmpty)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(20),
@@ -398,7 +398,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ),
 
-            ...registrosGlobais.reversed.map((registro) {
+            ...registrosDoPlanejamentoAtual().reversed.map((registro) {
               return registroTile(
                 '${registro.data.day}/${registro.data.month}/${registro.data.year}',
                 formatarMoedaGlobal(registro.vendido),

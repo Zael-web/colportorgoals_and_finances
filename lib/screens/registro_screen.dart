@@ -27,13 +27,23 @@ class _RegistroScreenState extends State<RegistroScreen> {
   void initState() {
     super.initState();
     _definirMaterialPadrao();
+    dadosGlobaisVersion.addListener(_atualizarDados);
   }
 
   @override
   void dispose() {
+    dadosGlobaisVersion.removeListener(_atualizarDados);
     quantidadeController.dispose();
     observacaoController.dispose();
     super.dispose();
+  }
+
+  void _atualizarDados() {
+    if (!mounted) return;
+    setState(() {
+      limparFormulario();
+      dataFiltro = null;
+    });
   }
 
   void _definirMaterialPadrao() {
@@ -94,8 +104,9 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
   List<int> get _indicesVisiveis {
     final indices = <int>[];
+    final indicesAtuais = indicesRegistrosDoPlanejamentoAtual();
 
-    for (var i = 0; i < registrosGlobais.length; i++) {
+    for (final i in indicesAtuais) {
       final registro = registrosGlobais[i];
       if (dataFiltro == null || mesmaData(registro.data, dataFiltro!)) {
         indices.add(i);
@@ -114,10 +125,11 @@ class _RegistroScreenState extends State<RegistroScreen> {
   double get totalAcumuladoCampanha => totalVendido + totalComprado;
 
   double get melhorDiaVendas {
-    if (registrosGlobais.isEmpty) return 0;
+    final registros = registrosDoPlanejamentoAtual();
+    if (registros.isEmpty) return 0;
 
     double maior = 0;
-    for (final registro in registrosGlobais) {
+    for (final registro in registros) {
       if (registro.vendido > maior) {
         maior = registro.vendido;
       }
@@ -127,7 +139,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
   int get diasComRegistro {
     final dias = <String>{};
-    for (final registro in registrosGlobais) {
+    for (final registro in registrosDoPlanejamentoAtual()) {
       dias.add(
         '${registro.data.year}-${registro.data.month}-${registro.data.day}',
       );
@@ -136,7 +148,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
   }
 
   double get mediaDiariaVendas {
-    if (registrosGlobais.isEmpty) return 0;
+    if (registrosDoPlanejamentoAtual().isEmpty) return 0;
     return totalVendido / diasComRegistro;
   }
 
@@ -244,6 +256,16 @@ class _RegistroScreenState extends State<RegistroScreen> {
   Future<void> salvarRegistro() async {
     final estavaEditando = indiceEditando != null;
     final totalCompradoAntes = totalComprado;
+    final planejamentoId =
+        planejamentoSelecionadoId ??
+        (planejamentosGlobais.isEmpty ? null : planejamentosGlobais.first.id);
+
+    if (planejamentoId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione um planejamento primeiro!')),
+      );
+      return;
+    }
 
     final material = materialSelecionado;
     final quantidade = quantidadeDigitada;
@@ -283,6 +305,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
       dizimo: dizimo,
       taxaCartao: taxaCartao,
       valorLiquido: valorLiquido,
+      planejamentoId: planejamentoId,
     );
 
     setState(() {

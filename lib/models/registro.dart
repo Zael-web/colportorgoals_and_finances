@@ -10,6 +10,7 @@ class Registro {
   final double taxaCartao;
   final double valorLiquido;
   final int versaoCalculo;
+  final String? planejamentoId;
 
   Registro({
     required this.material,
@@ -23,6 +24,7 @@ class Registro {
     required this.taxaCartao,
     required this.valorLiquido,
     this.versaoCalculo = 2,
+    this.planejamentoId,
   });
 
   Map<String, dynamic> toMap() {
@@ -38,6 +40,7 @@ class Registro {
       'taxaCartao': taxaCartao,
       'valorLiquido': valorLiquido,
       'versaoCalculo': versaoCalculo,
+      'planejamentoId': planejamentoId,
     };
   }
 
@@ -69,6 +72,7 @@ class Registro {
           ? vendido - dizimo - taxaCartao
           : valorLiquido,
       versaoCalculo: versaoCalculo,
+      planejamentoId: map['planejamentoId'] as String?,
     );
   }
 }
