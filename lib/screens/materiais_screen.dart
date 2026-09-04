@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../data/app_data.dart';
 import '../models/material_model.dart';
+import '../services/firestore_service.dart';
 
 class MateriaisScreen extends StatefulWidget {
   const MateriaisScreen({super.key});
@@ -12,8 +15,18 @@ class MateriaisScreen extends StatefulWidget {
 
 class _MateriaisScreenState extends State<MateriaisScreen> {
   final TextEditingController buscaController = TextEditingController();
+  final _firestoreService = FirestoreService();
 
   String busca = '';
+
+  Future<bool> _sincronizarComFirestore(Future<void> operacao) async {
+    try {
+      await operacao.timeout(const Duration(seconds: 8));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   @override
   void dispose() {
@@ -21,150 +34,48 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
     super.dispose();
   }
 
-  double _parseValor(String texto) {
-    final normalizado = texto.trim().contains(',')
-        ? texto.trim().replaceAll('.', '').replaceAll(',', '.')
-        : texto.trim();
-    return double.tryParse(normalizado) ?? 0.0;
-  }
-
   Future<void> _abrirFormulario({MaterialModel? material}) async {
-    final nomeController = TextEditingController(text: material?.nome ?? '');
-    final compraController = TextEditingController(
-      text: material == null ? '' : formatarNumeroGlobal(material.valorCompra),
+    final materialSalvo = await showDialog<MaterialModel>(
+      context: context,
+      builder: (_) => _MaterialFormDialog(material: material),
     );
-    final vendaController = TextEditingController(
-      text: material == null ? '' : formatarNumeroGlobal(material.valorVenda),
-    );
-    final formKey = GlobalKey<FormState>();
+
+    if (materialSalvo == null || !mounted) return;
+
+    String? mensagemErro;
+    var materialConfirmado = materialSalvo;
 
     try {
-      final confirmou = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) {
-          return AlertDialog(
-            title: Text(material == null ? 'Novo material' : 'Editar material'),
-            content: Form(
-              key: formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: nomeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome',
-                        border: OutlineInputBorder(),
-                      ),
-                      textCapitalization: TextCapitalization.words,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Informe o nome do material';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: compraController,
-                      decoration: const InputDecoration(
-                        labelText: 'Valor de compra',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      validator: (value) {
-                        if (_parseValor(value ?? '') <= 0) {
-                          return 'Informe um valor válido';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: vendaController,
-                      decoration: const InputDecoration(
-                        labelText: 'Valor de venda',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      validator: (value) {
-                        if (_parseValor(value ?? '') <= 0) {
-                          return 'Informe um valor válido';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('Cancelar'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  if (formKey.currentState?.validate() ?? false) {
-                    Navigator.of(dialogContext).pop(true);
-                  }
-                },
-                child: const Text('Salvar'),
-              ),
-            ],
-          );
-        },
-      );
-
-      if (confirmou != true) {
-        return;
-      }
-
-      final materialSalvo = MaterialModel(
-        id: material?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
-        nome: nomeController.text.trim(),
-        valorCompra: _parseValor(compraController.text),
-        valorVenda: _parseValor(vendaController.text),
-      );
-
       if (material == null) {
-        materiaisGlobais.add(materialSalvo);
+        final id = await _firestoreService.adicionarMaterial(materialSalvo);
+        materialConfirmado = materialSalvo.copyWith(id: id);
+        materiaisGlobais.add(materialConfirmado);
       } else {
-        final index = material.id == null
-            ? materiaisGlobais.indexOf(material)
-            : materiaisGlobais.indexWhere(
-                (item) => item.id == materialSalvo.id,
-              );
-        if (index != -1) {
-          materiaisGlobais[index] = materialSalvo;
-        }
+        await _firestoreService.atualizarMaterial(materialSalvo);
+        final index = materiaisGlobais.indexWhere(
+          (item) => item.id == materialSalvo.id,
+        );
+        if (index != -1) materiaisGlobais[index] = materialSalvo;
       }
       await salvarMateriaisGlobais();
-
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {});
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            material == null
-                ? 'Material adicionado com sucesso'
-                : 'Material atualizado com sucesso',
-          ),
-        ),
-      );
-    } finally {
-      nomeController.dispose();
-      compraController.dispose();
-      vendaController.dispose();
+    } catch (erro) {
+      mensagemErro = _firestoreService.mensagemDeErro(erro);
     }
+
+    if (!mounted) return;
+    setState(() {});
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          mensagemErro == null
+              ? (material == null
+                    ? 'Material adicionado no Firebase'
+                    : 'Material atualizado no Firebase')
+              : 'Erro ao salvar no Firebase: $mensagemErro',
+        ),
+      ),
+    );
   }
 
   Future<void> _confirmarExclusao(MaterialModel material) async {
@@ -188,11 +99,11 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
       },
     );
 
-    if (confirmou != true || material.id == null) {
+    if (confirmou != true) {
       return;
     }
 
-    materiaisGlobais.removeWhere((item) => item.id == material.id);
+    materiaisGlobais.removeWhere((item) => item == material);
     await salvarMateriaisGlobais();
 
     if (!mounted) {
@@ -200,9 +111,19 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
     }
 
     setState(() {});
+    final sincronizado = await _sincronizarComFirestore(
+      _firestoreService.excluirMaterial(material),
+    );
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Material excluído com sucesso')),
+      SnackBar(
+        content: Text(
+          sincronizado
+              ? 'Material excluído com sucesso'
+              : 'Material excluído neste dispositivo. Sincronização pendente.',
+        ),
+      ),
     );
   }
 
@@ -330,6 +251,128 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MaterialFormDialog extends StatefulWidget {
+  const _MaterialFormDialog({this.material});
+
+  final MaterialModel? material;
+
+  @override
+  State<_MaterialFormDialog> createState() => _MaterialFormDialogState();
+}
+
+class _MaterialFormDialogState extends State<_MaterialFormDialog> {
+  late final TextEditingController _nomeController;
+  late final TextEditingController _compraController;
+  late final TextEditingController _vendaController;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    final material = widget.material;
+    _nomeController = TextEditingController(text: material?.nome ?? '');
+    _compraController = TextEditingController(
+      text: material == null ? '' : formatarNumeroGlobal(material.valorCompra),
+    );
+    _vendaController = TextEditingController(
+      text: material == null ? '' : formatarNumeroGlobal(material.valorVenda),
+    );
+  }
+
+  @override
+  void dispose() {
+    _nomeController.dispose();
+    _compraController.dispose();
+    _vendaController.dispose();
+    super.dispose();
+  }
+
+  double _parseValor(String texto) {
+    final normalizado = texto.trim().contains(',')
+        ? texto.trim().replaceAll('.', '').replaceAll(',', '.')
+        : texto.trim();
+    return double.tryParse(normalizado) ?? 0.0;
+  }
+
+  void _salvar() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final material = widget.material;
+    Navigator.of(context).pop(
+      MaterialModel(
+        id: material?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+        nome: _nomeController.text.trim(),
+        valorCompra: _parseValor(_compraController.text),
+        valorVenda: _parseValor(_vendaController.text),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(
+        widget.material == null ? 'Novo material' : 'Editar material',
+      ),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nomeController,
+                decoration: const InputDecoration(
+                  labelText: 'Nome',
+                  border: OutlineInputBorder(),
+                ),
+                textCapitalization: TextCapitalization.words,
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Informe o nome do material'
+                    : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _compraController,
+                decoration: const InputDecoration(
+                  labelText: 'Valor de compra',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                validator: (value) => _parseValor(value ?? '') <= 0
+                    ? 'Informe um valor válido'
+                    : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _vendaController,
+                decoration: const InputDecoration(
+                  labelText: 'Valor de venda',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                validator: (value) => _parseValor(value ?? '') <= 0
+                    ? 'Informe um valor válido'
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(onPressed: _salvar, child: const Text('Salvar')),
+      ],
     );
   }
 }

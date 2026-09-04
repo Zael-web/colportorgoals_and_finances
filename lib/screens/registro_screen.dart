@@ -256,9 +256,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
   Future<void> salvarRegistro() async {
     final estavaEditando = indiceEditando != null;
     final totalCompradoAntes = totalComprado;
-    final planejamentoId =
-        planejamentoSelecionadoId ??
-        (planejamentosGlobais.isEmpty ? null : planejamentosGlobais.first.id);
+    final planejamentoId = await garantirPlanejamentoParaRegistro();
 
     if (planejamentoId == null) {
       ScaffoldMessenger.of(context).showSnackBar(

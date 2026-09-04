@@ -25,7 +25,7 @@ Future<void> main() async {
     await GoogleSignIn.instance.initialize(clientId: webClientId);
   } else {
     await GoogleSignIn.instance.initialize();
-  }
+ }
 
   runApp(const MyApp());
 }
@@ -40,6 +40,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   bool _modoEscuro = true;
   bool _alternandoTema = false;
+  String? _uidDosDadosCarregados;
+  Future<void>? _carregamentoDosDados;
 
   @override
   void initState() {
@@ -114,9 +116,12 @@ class _MyAppState extends State<MyApp> {
               seedColor: _navyEnd,
               brightness: Brightness.dark,
             ).copyWith(
-              primary: _navyEnd,
-              secondary: const Color(0xFF4DA3FF),
+              primary: const Color(0xFF4DA3FF),
+              onPrimary: _navyStart,
+              secondary: const Color(0xFF8BC7FF),
+              onSecondary: _navyStart,
               surface: _navyStart,
+              onSurface: Colors.white,
             ),
         scaffoldBackgroundColor: Colors.transparent,
         canvasColor: Colors.transparent,
@@ -168,14 +173,31 @@ class _MyAppState extends State<MyApp> {
         builder: (context, snapshot) {
           final usuario = snapshot.data;
           if (usuario == null) {
+            _uidDosDadosCarregados = null;
+            _carregamentoDosDados = null;
             return const LoginScreen();
           }
 
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
-            await carregarDadosUsuarioAtual();
-          });
+          if (_uidDosDadosCarregados != usuario.uid) {
+            _uidDosDadosCarregados = usuario.uid;
+            _carregamentoDosDados = carregarDadosUsuarioAtual();
+          }
 
-          return HomeScreen(modoEscuro: _modoEscuro, onAlternarTema: _alternarTema);
+          return FutureBuilder<void>(
+            future: _carregamentoDosDados,
+            builder: (context, dadosSnapshot) {
+              if (dadosSnapshot.connectionState != ConnectionState.done) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              return HomeScreen(
+                modoEscuro: _modoEscuro,
+                onAlternarTema: _alternarTema,
+              );
+            },
+          );
         },
       ),
     );

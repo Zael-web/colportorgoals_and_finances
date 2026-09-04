@@ -251,9 +251,9 @@ Future<void> salvarMateriaisGlobais() async {
 Future<void> carregarMateriaisGlobais() async {
   try {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    final materiaisFirestore = await _firestoreService
-        .listarMateriais(userId: uid)
-        .first;
+    final materiaisFirestore = await _firestoreService.buscarMateriais(
+      userId: uid,
+    );
 
     if (materiaisFirestore.isNotEmpty) {
       materiaisGlobais = materiaisFirestore;
@@ -268,20 +268,24 @@ Future<void> carregarMateriaisGlobais() async {
 
   List<String>? lista = prefs.getStringList(key);
 
-  if (lista != null && lista.isNotEmpty) {
+  if (lista != null) {
     materiaisGlobais = lista.map((item) {
       return MaterialModel.fromMap(jsonDecode(item));
     }).toList();
   }
 
   if (materiaisGlobais.isNotEmpty) {
-    for (final material in materiaisGlobais) {
+    for (var index = 0; index < materiaisGlobais.length; index++) {
+      final material = materiaisGlobais[index];
       try {
-        await _firestoreService.adicionarMaterial(material);
+        final id = await _firestoreService.adicionarMaterial(material);
+        materiaisGlobais[index] = material.copyWith(id: id);
       } catch (_) {
         // Ignora duplicidades ou falhas momentâneas durante a migração.
       }
     }
+
+    await salvarMateriaisGlobais();
   }
 }
 
@@ -475,6 +479,32 @@ Future<void> selecionarPlanejamento(String id) async {
   await prefs.setString(_keyDoUsuario('planejamentoSelecionadoId'), id);
   await salvarPlanejamento();
   dadosGlobaisVersion.value++;
+}
+
+Future<String?> garantirPlanejamentoParaRegistro() async {
+  if (planejamentoSelecionadoId != null &&
+      planejamentosGlobais.any(
+        (planejamento) => planejamento.id == planejamentoSelecionadoId,
+      )) {
+    return planejamentoSelecionadoId;
+  }
+
+  if (planejamentosGlobais.isEmpty) {
+    final planejamento = Planejamento(
+      id: 'principal',
+      nome: 'Meu planejamento',
+      meta: metaBolsaGlobal == 0 ? 18000 : metaBolsaGlobal,
+      dataInicio: dataInicioGlobal,
+      dataFim: dataFimGlobal,
+      quantidadeDias: 30,
+    );
+    planejamentosGlobais.add(planejamento);
+    await salvarListaPlanejamentos();
+  }
+
+  final id = planejamentosGlobais.first.id;
+  await selecionarPlanejamento(id);
+  return id;
 }
 
 Future<void> salvarOuAtualizarPlanejamento(Planejamento planejamento) async {
