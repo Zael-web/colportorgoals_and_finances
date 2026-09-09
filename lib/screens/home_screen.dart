@@ -211,7 +211,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final nomeUsuario = AuthService().getNomeUsuarioLogado();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Colportor App')),
+      appBar: AppBar(title: const Text('Colporto planejamento')),
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
