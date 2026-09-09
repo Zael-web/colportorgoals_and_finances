@@ -405,108 +405,207 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
         ? 0.0
         : (totalCompradoGlobal() / metaBolsaGlobal).clamp(0.0, 1.0);
 
+    final cardsResumo = [
+      _ResumoItemPlanejamento(
+        titulo: 'Meta',
+        valor: formatarMoedaGlobal(metaBolsaGlobal),
+        icone: Icons.flag,
+        cor: Colors.blue,
+      ),
+      _ResumoItemPlanejamento(
+        titulo: 'Pago',
+        valor: formatarMoedaGlobal(totalCompradoGlobal()),
+        icone: Icons.shopping_cart,
+        cor: Colors.orange,
+      ),
+      _ResumoItemPlanejamento(
+        titulo: 'Falta',
+        valor: formatarMoedaGlobal(falta.toDouble()),
+        icone: Icons.trending_up,
+        cor: Colors.red,
+      ),
+      _ResumoItemPlanejamento(
+        titulo: 'Dias',
+        valor: '$diasRestantes dias',
+        icone: Icons.calendar_month,
+        cor: Colors.purple,
+      ),
+    ];
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Planejamentos')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: corAcao,
-                foregroundColor: corTextoAcao,
+      appBar: AppBar(
+        title: const Text('Planejamentos'),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: corAcao,
+                  foregroundColor: corTextoAcao,
+                  minimumSize: const Size.fromHeight(52),
+                ),
+                onPressed: () => abrirEditor(),
+                icon: const Icon(Icons.add),
+                label: const Text('Adicionar planejamento'),
               ),
-              onPressed: () => abrirEditor(),
-              icon: const Icon(Icons.add),
-              label: const Text('Adicionar planejamento'),
-            ),
-            const SizedBox(height: 12),
-            ...planejamentosGlobais.map(
-              (planejamento) => Card(
-                child: ListTile(
-                  selected: planejamento.id == planejamentoSelecionadoId,
-                  leading: Icon(
-                    planejamento.id == planejamentoSelecionadoId
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_off,
-                  ),
-                  title: Text(planejamento.nome),
-                  subtitle: Text(
-                    '${formatarMoedaGlobal(planejamento.meta)} | ${planejamento.quantidadeDias} dias úteis | ${formatarData(planejamento.dataInicio)} a ${formatarData(planejamento.dataFim)}',
-                  ),
-                  onTap: () async {
-                    await selecionarPlanejamento(planejamento.id);
-                    if (!mounted) return;
-                    setState(() {});
-                    widget.onMetaChanged?.call();
-                  },
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        tooltip: 'Editar',
-                        onPressed: () => abrirEditor(planejamento),
-                        icon: const Icon(Icons.edit),
+              const SizedBox(height: 16),
+              ...planejamentosGlobais.map(
+                (planejamento) => Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    selected: planejamento.id == planejamentoSelecionadoId,
+                    leading: CircleAvatar(
+                      backgroundColor: planejamento.id == planejamentoSelecionadoId
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.surfaceContainerHighest,
+                      child: Icon(
+                        planejamento.id == planejamentoSelecionadoId
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: planejamento.id == planejamentoSelecionadoId
+                            ? Colors.white
+                            : Theme.of(context).colorScheme.primary,
                       ),
-                      IconButton(
-                        tooltip: 'Excluir',
-                        onPressed: () => excluir(planejamento),
-                        icon: const Icon(Icons.delete, color: Colors.redAccent),
-                      ),
-                    ],
+                    ),
+                    title: Text(planejamento.nome),
+                    subtitle: Text(
+                      '${formatarMoedaGlobal(planejamento.meta)} | ${planejamento.quantidadeDias} dias úteis | ${formatarData(planejamento.dataInicio)} a ${formatarData(planejamento.dataFim)}',
+                    ),
+                    onTap: () async {
+                      await selecionarPlanejamento(planejamento.id);
+                      if (!mounted) return;
+                      setState(() {});
+                      widget.onMetaChanged?.call();
+                    },
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: 'Editar',
+                          onPressed: () => abrirEditor(planejamento),
+                          icon: const Icon(Icons.edit),
+                        ),
+                        IconButton(
+                          tooltip: 'Excluir',
+                          onPressed: () => excluir(planejamento),
+                          icon: const Icon(Icons.delete, color: Colors.redAccent),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            if (selecionado != null) ...[
-              const SizedBox(height: 20),
-              Text(
-                'Resumo: ${selecionado.nome}',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 12),
-              resumo(
-                'Meta da Bolsa',
-                formatarMoedaGlobal(metaBolsaGlobal),
-                Icons.flag,
-                Colors.blue,
-              ),
-              resumo(
-                'Total pago (material + dízimo)',
-                formatarMoedaGlobal(totalCompradoGlobal()),
-                Icons.shopping_cart,
-                Colors.orange,
-              ),
-              resumo(
-                'Quanto Falta',
-                formatarMoedaGlobal(falta.toDouble()),
-                Icons.trending_up,
-                Colors.red,
-              ),
-              resumo(
-                'Dias Restantes',
-                '$diasRestantes dias',
-                Icons.calendar_month,
-                Colors.blue,
-              ),
-              resumo(
-                'Meta Diária',
-                formatarMoedaGlobal((falta / diasRestantes).toDouble()),
-                Icons.calculate,
-                Colors.purple,
-              ),
-              const SizedBox(height: 8),
-              LinearProgressIndicator(value: progresso, minHeight: 14),
-              const SizedBox(height: 8),
-              Text(
-                '${(progresso * 100).toStringAsFixed(1)}% concluído',
-                textAlign: TextAlign.center,
-              ),
+              if (selecionado != null) ...[
+                const SizedBox(height: 18),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Resumo: ${selecionado.nome}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: cardsResumo.map((item) {
+                            return SizedBox(
+                              width: 160,
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: temaEscuro
+                                      ? const Color(0xFF0B294D)
+                                      : const Color(0xFFEAF4FC),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 38,
+                                      height: 38,
+                                      decoration: BoxDecoration(
+                                        color: item.cor.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Icon(
+                                        item.icone,
+                                        color: item.cor,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.titulo,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelMedium,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            item.valor,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 18),
+                        LinearProgressIndicator(
+                          value: progresso,
+                          minHeight: 12,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          '${(progresso * 100).toStringAsFixed(1)}% concluído',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _ResumoItemPlanejamento {
+  const _ResumoItemPlanejamento({
+    required this.titulo,
+    required this.valor,
+    required this.icone,
+    required this.cor,
+  });
+
+  final String titulo;
+  final String valor;
+  final IconData icone;
+  final Color cor;
 }

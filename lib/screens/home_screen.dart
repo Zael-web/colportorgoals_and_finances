@@ -6,6 +6,7 @@ import 'materiais_screen.dart';
 import 'metas_screen.dart';
 import 'planejamento_screen.dart';
 import 'registro_screen.dart';
+import 'usuario_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -28,11 +29,29 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     paginas = [
-      const DashboardPage(),
-      RegistroScreen(atualizarHome: atualizarMetaBolsa),
-      MetasScreen(onMetaChanged: atualizarMetaBolsa),
+      DashboardPage(
+        onAbrirUsuario: () {
+          setState(() {
+            paginaAtual = 5;
+          });
+        },
+      ),
+      RegistroScreen(
+        atualizarHome: atualizarMetaBolsa,
+        modoEscuro: widget.modoEscuro,
+        onAlternarTema: widget.onAlternarTema,
+      ),
+      MetasScreen(
+        onMetaChanged: atualizarMetaBolsa,
+        modoEscuro: widget.modoEscuro,
+        onAlternarTema: widget.onAlternarTema,
+      ),
       const MateriaisScreen(),
       PlanejamentoScreen(onMetaChanged: atualizarMetaBolsa),
+      UsuarioScreen(
+        modoEscuro: widget.modoEscuro,
+        onAlternarTema: widget.onAlternarTema,
+      ),
     ];
   }
 
@@ -40,76 +59,12 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  Future<void> _confirmarSaida() async {
-    final confirmou = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Sair da conta?'),
-        content: const Text('Você deseja sair da conta?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Sim'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmou == true && mounted) {
-      await AuthService().sair();
-    }
-  }
-
   int paginaAtual = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          IndexedStack(index: paginaAtual, children: paginas),
-          Positioned(
-            top: MediaQuery.paddingOf(context).top + 4,
-            right: 8,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Material(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surface.withValues(alpha: 0.85),
-                  shape: const CircleBorder(),
-                  child: IconButton(
-                    tooltip: 'Sair da conta',
-                    onPressed: _confirmarSaida,
-                    icon: const Icon(Icons.logout),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Material(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surface.withValues(alpha: 0.85),
-                  shape: const CircleBorder(),
-                  child: IconButton(
-                    tooltip: widget.modoEscuro
-                        ? 'Ativar modo claro'
-                        : 'Ativar modo escuro',
-                    onPressed: widget.onAlternarTema,
-                    icon: Icon(
-                      widget.modoEscuro ? Icons.light_mode : Icons.dark_mode,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      body: IndexedStack(index: paginaAtual, children: paginas),
 
       bottomNavigationBar: NavigationBar(
         selectedIndex: paginaAtual,
@@ -136,6 +91,10 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.timeline),
             label: 'Planejamento',
           ),
+          NavigationDestination(
+            icon: Icon(Icons.person),
+            label: 'Usuário',
+          ),
         ],
       ),
     );
@@ -143,7 +102,9 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key});
+  const DashboardPage({super.key, required this.onAbrirUsuario});
+
+  final VoidCallback onAbrirUsuario;
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -211,7 +172,16 @@ class _DashboardPageState extends State<DashboardPage> {
     final nomeUsuario = AuthService().getNomeUsuarioLogado();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Colporto planejamento')),
+      appBar: AppBar(
+        title: const Text('Colporto planejamento'),
+        actions: [
+          IconButton(
+            onPressed: widget.onAbrirUsuario,
+            icon: const Icon(Icons.person_outline),
+            tooltip: 'Abrir perfil do usuário',
+          ),
+        ],
+      ),
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

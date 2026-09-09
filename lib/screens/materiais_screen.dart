@@ -172,6 +172,10 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final materiaisFiltrados = materiaisGlobais.where((material) {
+      return material.nome.toLowerCase().contains(busca.toLowerCase());
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Materiais'),
@@ -183,72 +187,70 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _abrirFormulario(),
-        icon: const Icon(Icons.add),
-        label: const Text('Novo material'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: buscaController,
-              decoration: InputDecoration(
-                labelText: 'Pesquisar material',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: busca.isEmpty
-                    ? null
-                    : IconButton(
-                        onPressed: () {
-                          buscaController.clear();
-                          setState(() {
-                            busca = '';
-                          });
-                        },
-                        icon: const Icon(Icons.clear),
-                      ),
-                border: const OutlineInputBorder(),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: TextField(
+                    controller: buscaController,
+                    decoration: InputDecoration(
+                      labelText: 'Pesquisar material',
+                      prefixIcon: const Icon(Icons.search),
+                      border: InputBorder.none,
+                      suffixIcon: busca.isEmpty
+                          ? null
+                          : IconButton(
+                              onPressed: () {
+                                buscaController.clear();
+                                setState(() {
+                                  busca = '';
+                                });
+                              },
+                              icon: const Icon(Icons.clear),
+                            ),
+                    ),
+                    onChanged: (valor) {
+                      setState(() {
+                        busca = valor;
+                      });
+                    },
+                  ),
+                ),
               ),
-              onChanged: (valor) {
-                setState(() {
-                  busca = valor;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: Builder(
-                builder: (context) {
-                  final materiaisFiltrados = materiaisGlobais.where((material) {
-                    return material.nome.toLowerCase().contains(
-                      busca.toLowerCase(),
-                    );
-                  }).toList();
-
-                  if (materiaisFiltrados.isEmpty) {
-                    return Center(
-                      child: Text(
-                        busca.isEmpty
-                            ? 'Nenhum material cadastrado.'
-                            : 'Nenhum material encontrado para "$busca".',
-                        textAlign: TextAlign.center,
+              const SizedBox(height: 16),
+              if (materiaisFiltrados.isEmpty)
+                Expanded(
+                  child: Center(
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          busca.isEmpty
+                              ? 'Nenhum material cadastrado.'
+                              : 'Nenhum material encontrado para "$busca".',
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    );
-                  }
-
-                  return ListView.separated(
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView.separated(
                     itemCount: materiaisFiltrados.length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       return _materialCard(materiaisFiltrados[index]);
                     },
-                  );
-                },
-              ),
-            ),
-          ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

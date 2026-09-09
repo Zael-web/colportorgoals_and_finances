@@ -6,8 +6,15 @@ import '../models/registro.dart';
 
 class RegistroScreen extends StatefulWidget {
   final VoidCallback atualizarHome;
+  final bool modoEscuro;
+  final VoidCallback onAlternarTema;
 
-  const RegistroScreen({super.key, required this.atualizarHome});
+  const RegistroScreen({
+    super.key,
+    required this.atualizarHome,
+    required this.modoEscuro,
+    required this.onAlternarTema,
+  });
 
   @override
   State<RegistroScreen> createState() => _RegistroScreenState();
@@ -212,20 +219,21 @@ class _RegistroScreenState extends State<RegistroScreen> {
   }
 
   Future<void> confirmarExclusao(int indice) async {
+    final currentContext = context;
     final confirmado = await showDialog<bool>(
-      context: context,
-      builder: (context) {
+      context: currentContext,
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Excluir registro'),
           content: const Text('Deseja excluir este registro?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text('Cancelar'),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
               child: const Text('Excluir'),
             ),
           ],
@@ -242,24 +250,28 @@ class _RegistroScreenState extends State<RegistroScreen> {
       }
     });
 
+    // ignore: use_build_context_synchronously
+    final messenger = ScaffoldMessenger.maybeOf(currentContext);
     dadosGlobaisVersion.value++;
     await salvarRegistrosGlobais();
     widget.atualizarHome();
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    messenger?.showSnackBar(
       const SnackBar(content: Text('Registro excluído com sucesso!')),
     );
   }
 
   Future<void> salvarRegistro() async {
+    final currentContext = context;
     final estavaEditando = indiceEditando != null;
     final totalCompradoAntes = totalComprado;
+    final messenger = ScaffoldMessenger.maybeOf(currentContext);
     final planejamentoId = await garantirPlanejamentoParaRegistro();
 
     if (planejamentoId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger?.showSnackBar(
         const SnackBar(content: Text('Selecione um planejamento primeiro!')),
       );
       return;
@@ -270,14 +282,14 @@ class _RegistroScreenState extends State<RegistroScreen> {
     final observacao = observacaoController.text.trim();
 
     if (materialSelecionadoNome == null || material == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Selecione um material!')));
+      messenger?.showSnackBar(
+        const SnackBar(content: Text('Selecione um material!')),
+      );
       return;
     }
 
     if (quantidade <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger?.showSnackBar(
         const SnackBar(content: Text('Informe uma quantidade válida!')),
       );
       return;
@@ -324,9 +336,10 @@ class _RegistroScreenState extends State<RegistroScreen> {
     if (metaBolsaGlobal > 0 &&
         totalCompradoAntes < metaBolsaGlobal &&
         totalComprado >= metaBolsaGlobal) {
+      // ignore: use_build_context_synchronously
       await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
+        context: currentContext,
+        builder: (dialogContext) => AlertDialog(
           icon: const Icon(Icons.celebration, color: Colors.amber, size: 44),
           title: const Text('Parabéns!'),
           content: const Text(
@@ -335,7 +348,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
           ),
           actions: [
             FilledButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Continuar'),
             ),
           ],
@@ -344,7 +357,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
       if (!mounted) return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    messenger?.showSnackBar(
       SnackBar(
         content: Text(
           estavaEditando
@@ -869,9 +882,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
         ],
       ),
 
-      body: Container(
-        decoration: const BoxDecoration(),
-
+      body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16),
