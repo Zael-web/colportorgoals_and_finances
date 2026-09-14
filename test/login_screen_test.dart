@@ -13,15 +13,16 @@ void main() {
     );
   });
 
-  testWidgets('exibe formulário de login por e-mail', (tester) async {
+  testWidgets('exibe formulário de login por e-mail e botão de tema', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: LoginScreen(),
+        home: LoginScreen(modoEscuro: true),
       ),
     );
 
     expect(find.text('Entrar com e-mail'), findsOneWidget);
     expect(find.text('E-mail'), findsWidgets);
     expect(find.text('Senha'), findsWidgets);
+    expect(find.text('Claro'), findsOneWidget);
   });
 }

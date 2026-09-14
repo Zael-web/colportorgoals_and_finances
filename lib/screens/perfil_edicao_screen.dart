@@ -97,15 +97,17 @@ class _PerfilEdicaoScreenState extends State<PerfilEdicaoScreen> {
       appBar: AppBar(
         title: const Text('Editar perfil'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                TextField(
               controller: _nomeController,
               decoration: const InputDecoration(
                 labelText: 'Nome completo',
-                prefixIcon: Icon(Icons.person),
               ),
             ),
             const SizedBox(height: 12),
@@ -114,7 +116,6 @@ class _PerfilEdicaoScreenState extends State<PerfilEdicaoScreen> {
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(
                 labelText: 'E-mail',
-                prefixIcon: Icon(Icons.email_outlined),
               ),
             ),
             const SizedBox(height: 12),
@@ -123,7 +124,6 @@ class _PerfilEdicaoScreenState extends State<PerfilEdicaoScreen> {
               keyboardType: TextInputType.phone,
               decoration: const InputDecoration(
                 labelText: 'Telefone',
-                prefixIcon: Icon(Icons.phone),
               ),
             ),
             const SizedBox(height: 12),
@@ -131,7 +131,6 @@ class _PerfilEdicaoScreenState extends State<PerfilEdicaoScreen> {
               controller: _cidadeController,
               decoration: const InputDecoration(
                 labelText: 'Cidade',
-                prefixIcon: Icon(Icons.location_on_outlined),
               ),
             ),
             const SizedBox(height: 12),
@@ -141,19 +140,19 @@ class _PerfilEdicaoScreenState extends State<PerfilEdicaoScreen> {
               maxLines: 5,
               decoration: const InputDecoration(
                 labelText: 'Biografia',
-                prefixIcon: Icon(Icons.info_outline),
               ),
             ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              child: FilledButton.icon(
+              child: FilledButton(
                 onPressed: _salvarPerfil,
-                icon: const Icon(Icons.save),
-                label: const Text('Salvar alterações'),
+                child: const Text('Salvar alterações'),
               ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

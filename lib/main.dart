@@ -20,12 +20,16 @@ Future<void> main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  const webClientId = String.fromEnvironment(
+    'GOOGLE_WEB_CLIENT_ID',
+    defaultValue: '878895227518-5bptk6ojbo23mphvmagk5900js6lve77.apps.googleusercontent.com',
+  );
+
   if (kIsWeb) {
-    const webClientId = 'SEU_WEB_CLIENT_ID_DO_GOOGLE';
     await GoogleSignIn.instance.initialize(clientId: webClientId);
   } else {
     await GoogleSignIn.instance.initialize();
- }
+  }
 
   runApp(const MyApp());
 }
@@ -74,6 +78,8 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Colportor App',
+      themeAnimationDuration: const Duration(milliseconds: 450),
+      themeAnimationCurve: Curves.easeInOutCubic,
       themeMode: _modoEscuro ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData.light(useMaterial3: true).copyWith(
         colorScheme: ColorScheme.fromSeed(
@@ -154,7 +160,9 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       builder: (context, child) {
-        return DecoratedBox(
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOutCubic,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -175,7 +183,10 @@ class _MyAppState extends State<MyApp> {
           if (usuario == null) {
             _uidDosDadosCarregados = null;
             _carregamentoDosDados = null;
-            return const LoginScreen();
+            return LoginScreen(
+              modoEscuro: _modoEscuro,
+              onAlternarTema: _alternarTema,
+            );
           }
 
           if (_uidDosDadosCarregados != usuario.uid) {

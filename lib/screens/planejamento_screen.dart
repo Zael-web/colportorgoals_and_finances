@@ -130,11 +130,8 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                   (feriado) => ListTile(
                     contentPadding: EdgeInsets.zero,
                     dense: true,
-                    leading: const Icon(Icons.event_busy),
                     title: Text(formatarData(feriado)),
-                    trailing: IconButton(
-                      tooltip: 'Remover feriado',
-                      icon: const Icon(Icons.remove_circle_outline),
+                    trailing: TextButton(
                       onPressed: () => setDialogState(() {
                         feriados.remove(feriado);
                         dataFim = Planejamento.calcularDataFim(
@@ -143,10 +140,11 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                           feriados: feriados,
                         );
                       }),
+                      child: const Text('Remover'),
                     ),
                   ),
                 ),
-                TextButton.icon(
+                TextButton(
                   onPressed: () async {
                     final feriado = await showDatePicker(
                       context: context,
@@ -169,13 +167,11 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                       });
                     }
                   },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Adicionar feriado'),
+                  child: const Text('Adicionar feriado'),
                 ),
                 const SizedBox(height: 16),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.calendar_today),
                   title: Text(
                     'Data de início',
                     style: TextStyle(
@@ -213,7 +209,6 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.event),
                   title: Text(
                     'Data final',
                     style: TextStyle(
@@ -437,158 +432,198 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
         title: const Text('Planejamentos'),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              FilledButton.icon(
-                style: FilledButton.styleFrom(
-                  backgroundColor: corAcao,
-                  foregroundColor: corTextoAcao,
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                onPressed: () => abrirEditor(),
-                icon: const Icon(Icons.add),
-                label: const Text('Adicionar planejamento'),
-              ),
-              const SizedBox(height: 16),
-              ...planejamentosGlobais.map(
-                (planejamento) => Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    selected: planejamento.id == planejamentoSelecionadoId,
-                    leading: CircleAvatar(
-                      backgroundColor: planejamento.id == planejamentoSelecionadoId
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.surfaceContainerHighest,
-                      child: Icon(
-                        planejamento.id == planejamentoSelecionadoId
-                            ? Icons.radio_button_checked
-                            : Icons.radio_button_off,
-                        color: planejamento.id == planejamentoSelecionadoId
-                            ? Colors.white
-                            : Theme.of(context).colorScheme.primary,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: corAcao,
+                      foregroundColor: corTextoAcao,
+                      minimumSize: const Size.fromHeight(52),
+                    ),
+                    onPressed: () => abrirEditor(),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Adicionar planejamento'),
+                  ),
+                  const SizedBox(height: 16),
+                  ...planejamentosGlobais.map(
+                    (planejamento) => Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        selected: planejamento.id == planejamentoSelecionadoId,
+                        leading: CircleAvatar(
+                          backgroundColor: planejamento.id == planejamentoSelecionadoId
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
+                          child: Icon(
+                            planejamento.id == planejamentoSelecionadoId
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_off,
+                            color: planejamento.id == planejamentoSelecionadoId
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        title: Text(planejamento.nome),
+                        subtitle: Text(
+                          '${formatarMoedaGlobal(planejamento.meta)} | ${planejamento.quantidadeDias} dias úteis | ${formatarData(planejamento.dataInicio)} a ${formatarData(planejamento.dataFim)}',
+                        ),
+                        onTap: () async {
+                          await selecionarPlanejamento(planejamento.id);
+                          if (!mounted) return;
+                          setState(() {});
+                          widget.onMetaChanged?.call();
+                        },
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              tooltip: 'Editar',
+                              onPressed: () => abrirEditor(planejamento),
+                              icon: const Icon(Icons.edit),
+                            ),
+                            IconButton(
+                              tooltip: 'Excluir',
+                              onPressed: () => excluir(planejamento),
+                              icon: const Icon(Icons.delete, color: Colors.redAccent),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    title: Text(planejamento.nome),
-                    subtitle: Text(
-                      '${formatarMoedaGlobal(planejamento.meta)} | ${planejamento.quantidadeDias} dias úteis | ${formatarData(planejamento.dataInicio)} a ${formatarData(planejamento.dataFim)}',
-                    ),
-                    onTap: () async {
-                      await selecionarPlanejamento(planejamento.id);
-                      if (!mounted) return;
-                      setState(() {});
-                      widget.onMetaChanged?.call();
-                    },
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          tooltip: 'Editar',
-                          onPressed: () => abrirEditor(planejamento),
-                          icon: const Icon(Icons.edit),
-                        ),
-                        IconButton(
-                          tooltip: 'Excluir',
-                          onPressed: () => excluir(planejamento),
-                          icon: const Icon(Icons.delete, color: Colors.redAccent),
-                        ),
-                      ],
-                    ),
                   ),
-                ),
-              ),
-              if (selecionado != null) ...[
-                const SizedBox(height: 18),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Resumo: ${selecionado.nome}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                  if (selecionado != null) ...[
+                    const SizedBox(height: 18),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: temaEscuro
+                              ? const [Color(0xFF0B294D), Color(0xFF123F6C)]
+                              : const [Color(0xFFDCECF8), Color(0xFFF5FAFF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        const SizedBox(height: 16),
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: cardsResumo.map((item) {
-                            return SizedBox(
-                              width: 160,
-                              child: Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: temaEscuro
-                                      ? const Color(0xFF0B294D)
-                                      : const Color(0xFFEAF4FC),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 38,
-                                      height: 38,
-                                      decoration: BoxDecoration(
-                                        color: item.cor.withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Icon(
-                                        item.icone,
-                                        color: item.cor,
-                                      ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: temaEscuro ? Colors.white12 : Colors.blueGrey.shade100,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (temaEscuro ? Colors.black : Colors.blueGrey)
+                                .withValues(alpha: 0.05),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Resumo: ${selecionado.nome}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: temaEscuro ? Colors.white : const Color(0xFF123B68),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: cardsResumo.map((item) {
+                              return SizedBox(
+                                width: 160,
+                                child: Container(
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: temaEscuro
+                                        ? const Color(0xFF102D45)
+                                        : const Color(0xFFF6FBFF),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: temaEscuro
+                                          ? Colors.white12
+                                          : Colors.blueGrey.shade100,
                                     ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            item.titulo,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelMedium,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            item.valor,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 38,
+                                        height: 38,
+                                        decoration: BoxDecoration(
+                                          color: item.cor.withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Icon(
+                                          item.icone,
+                                          color: item.cor,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.titulo,
+                                              style: TextStyle(
+                                                color: temaEscuro
+                                                    ? Colors.white70
+                                                    : const Color(0xFF35607F),
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              item.valor,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: temaEscuro
+                                                    ? Colors.white
+                                                    : const Color(0xFF123B68),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: 18),
-                        LinearProgressIndicator(
-                          value: progresso,
-                          minHeight: 12,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          '${(progresso * 100).toStringAsFixed(1)}% concluído',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                      ],
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 18),
+                          LinearProgressIndicator(
+                            value: progresso,
+                            minHeight: 12,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            '${(progresso * 100).toStringAsFixed(1)}% concluído',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: temaEscuro ? Colors.white : const Color(0xFF123B68),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-              ],
-            ],
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
       ),

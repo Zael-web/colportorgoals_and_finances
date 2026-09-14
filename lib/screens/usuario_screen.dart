@@ -240,109 +240,125 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
       appBar: AppBar(
         title: const Text('Usuário'),
         actions: [
-          IconButton(
+          TextButton(
             onPressed: _confirmarSaida,
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sair da conta',
+            child: const Text('Sair'),
           ),
-          IconButton(
+          TextButton(
             onPressed: widget.onAlternarTema,
-            icon: Icon(
-              widget.modoEscuro ? Icons.light_mode : Icons.dark_mode,
-            ),
-            tooltip: widget.modoEscuro
-                ? 'Ativar modo claro'
-                : 'Ativar modo escuro',
+            child: Text(widget.modoEscuro ? 'Claro' : 'Escuro'),
           ),
         ],
       ),
       body: _carregando
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Card(
-                      clipBehavior: Clip.antiAlias,
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            GestureDetector(
-                              onTap: _selecionarFoto,
-                              child: CircleAvatar(
-                                radius: 38,
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.primary,
-                                backgroundImage: _fotoPerfilBytes != null
-                                    ? MemoryImage(_fotoPerfilBytes!)
-                                    : null,
-                                child: _fotoPerfilBytes == null
-                                    ? Text(
-                                        nomeExibido.substring(0, 1).toUpperCase(),
-                                        style: const TextStyle(
-                                          fontSize: 28,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    : null,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    nomeExibido,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall
-                                        ?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    emailExibido,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant,
-                                        ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: [
-                                      ActionChip(
-                                        avatar: const Icon(Icons.photo_library_outlined, size: 18),
-                                        label: const Text('Foto'),
-                                        onPressed: _selecionarFoto,
-                                      ),
-                                      ActionChip(
-                                        avatar: const Icon(Icons.edit_outlined, size: 18),
-                                        label: const Text('Editar'),
-                                        onPressed: _abrirTelaEdicao,
-                                      ),
-                                      ActionChip(
-                                        avatar: const Icon(Icons.delete_outline, size: 18),
-                                        label: const Text('Excluir'),
-                                        onPressed: _excluirPerfil,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: Theme.of(context).brightness == Brightness.dark
+                              ? const [Color(0xFF0B294D), Color(0xFF123F6C)]
+                              : const [Color(0xFFDCECF8), Color(0xFFF5FAFF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white12
+                              : Colors.blueGrey.shade100,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.black
+                                    : Colors.blueGrey)
+                                .withValues(alpha: 0.05),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: _selecionarFoto,
+                            child: CircleAvatar(
+                              radius: 38,
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              backgroundImage: _fotoPerfilBytes != null
+                                  ? MemoryImage(_fotoPerfilBytes!)
+                                  : null,
+                              child: _fotoPerfilBytes == null
+                                  ? Text(
+                                      nomeExibido.substring(0, 1).toUpperCase(),
+                                      style: const TextStyle(
+                                        fontSize: 28,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  nomeExibido,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  emailExibido,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                ),
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    ActionChip(
+                                      label: const Text('Foto'),
+                                      onPressed: _selecionarFoto,
+                                    ),
+                                    ActionChip(
+                                      label: const Text('Editar'),
+                                      onPressed: _abrirTelaEdicao,
+                                    ),
+                                    ActionChip(
+                                      label: const Text('Excluir'),
+                                      onPressed: _excluirPerfil,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -353,52 +369,145 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Column(
-                          children: [
-                            ListTile(
-                              leading: const Icon(Icons.person_outline),
-                              title: const Text('Nome'),
-                              subtitle: Text(
-                                _nomeController.text.trim().isNotEmpty
-                                    ? _nomeController.text.trim()
-                                    : 'Não informado',
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: Theme.of(context).brightness == Brightness.dark
+                              ? const [Color(0xFF0B294D), Color(0xFF123F6C)]
+                              : const [Color(0xFFDCECF8), Color(0xFFF5FAFF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white12
+                              : Colors.blueGrey.shade100,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.black
+                                    : Colors.blueGrey)
+                                .withValues(alpha: 0.05),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          ListTile(
+                            title: Text(
+                              'Nome',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : const Color(0xFF123B68),
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const Divider(height: 1),
-                            ListTile(
-                              leading: const Icon(Icons.email_outlined),
-                              title: const Text('E-mail'),
-                              subtitle: Text(emailExibido),
+                            subtitle: Text(
+                              _nomeController.text.trim().isNotEmpty
+                                  ? _nomeController.text.trim()
+                                  : 'Não informado',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white70
+                                    : const Color(0xFF35607F),
+                              ),
                             ),
-                            const Divider(height: 1),
-                            ListTile(
-                              leading: const Icon(Icons.phone_outlined),
-                              title: const Text('Telefone'),
-                              subtitle: Text(telefoneExibido),
+                          ),
+                          const Divider(height: 1),
+                          ListTile(
+                            title: Text(
+                              'E-mail',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : const Color(0xFF123B68),
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                            const Divider(height: 1),
-                            ListTile(
-                              leading: const Icon(Icons.location_on_outlined),
-                              title: const Text('Cidade'),
-                              subtitle: Text(cidadeExibida),
+                            subtitle: Text(
+                              emailExibido,
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white70
+                                    : const Color(0xFF35607F),
+                              ),
                             ),
-                            const Divider(height: 1),
-                            ListTile(
-                              leading: const Icon(Icons.info_outline),
-                              title: const Text('Biografia'),
-                              subtitle: Text(bioExibida),
+                          ),
+                          const Divider(height: 1),
+                          ListTile(
+                            title: Text(
+                              'Telefone',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : const Color(0xFF123B68),
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ],
-                        ),
+                            subtitle: Text(
+                              telefoneExibido,
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white70
+                                    : const Color(0xFF35607F),
+                              ),
+                            ),
+                          ),
+                          const Divider(height: 1),
+                          ListTile(
+                            title: Text(
+                              'Cidade',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : const Color(0xFF123B68),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              cidadeExibida,
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white70
+                                    : const Color(0xFF35607F),
+                              ),
+                            ),
+                          ),
+                          const Divider(height: 1),
+                          ListTile(
+                            title: Text(
+                              'Biografia',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : const Color(0xFF123B68),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              bioExibida,
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white70
+                                    : const Color(0xFF35607F),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+          ),
+        ),
     );
   }
 }

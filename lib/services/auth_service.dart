@@ -49,8 +49,18 @@ class AuthService {
   Future<UserCredential> entrarComGoogle() async {
     final googleAccount = await _googleSignIn.authenticate();
     final googleAuth = googleAccount.authentication;
+
+    final idToken = googleAuth.idToken;
+
+    if (idToken == null) {
+      throw FirebaseAuthException(
+        code: 'google-sign-in-failed',
+        message: 'Não foi possível obter o token de autenticação do Google.',
+      );
+    }
+
     final credential = GoogleAuthProvider.credential(
-      idToken: googleAuth.idToken,
+      idToken: idToken,
     );
 
     return _auth.signInWithCredential(credential);

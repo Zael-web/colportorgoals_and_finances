@@ -4,7 +4,14 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({
+    super.key,
+    this.modoEscuro = true,
+    this.onAlternarTema,
+  });
+
+  final bool modoEscuro;
+  final VoidCallback? onAlternarTema;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -126,19 +133,14 @@ class _LoginScreenState extends State<LoginScreen> {
             }
           }
 
-          final corDestaque = tema.brightness == Brightness.dark
-              ? const Color(0xFF8BC7FF)
-              : const Color(0xFF1769AA);
-
           return AlertDialog(
             backgroundColor: tema.brightness == Brightness.dark
                 ? const Color(0xFF102D4D)
                 : const Color(0xFFF5FAFE),
-            title: Row(
+            title: const Row(
               children: [
-                Icon(Icons.lock_reset, color: corDestaque),
-                const SizedBox(width: 10),
-                const Expanded(child: Text('Esqueci a senha')),
+                SizedBox(width: 10),
+                Expanded(child: Text('Esqueci a senha')),
               ],
             ),
             content: SizedBox(
@@ -157,7 +159,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       labelText: 'E-mail',
-                      prefixIcon: Icon(Icons.email_outlined),
                     ),
                     onSubmitted: (_) => enviar(),
                   ),
@@ -254,228 +255,263 @@ class _LoginScreenState extends State<LoginScreen> {
         : Colors.white;
 
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 440),
-            child: Card(
-              elevation: 0,
-              color: tema.colorScheme.surface.withValues(alpha: 0.92),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Container(
-                        width: 108,
-                        height: 108,
-                        alignment: Alignment.center,
-                        clipBehavior: Clip.antiAlias,
-                        decoration: BoxDecoration(
-                          color: tema.colorScheme.primary.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Image.network(
-                          'https://i.ibb.co/7tX6yPQD/app1.jpg',
+      body: Stack(
+        children: [
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
                           width: 108,
                           height: 108,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return SizedBox(
-                              width: 108,
-                              height: 108,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes == null
-                                      ? null
-                                      : loadingProgress.cumulativeBytesLoaded /
-                                              loadingProgress.expectedTotalBytes!,
+                          alignment: Alignment.center,
+                          clipBehavior: Clip.antiAlias,
+                          decoration: BoxDecoration(
+                            color: tema.colorScheme.primary.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Image.network(
+                            'https://i.ibb.co/7tX6yPQD/app1.jpg',
+                            width: 108,
+                            height: 108,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return SizedBox(
+                                width: 108,
+                                height: 108,
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes == null
+                                        ? null
+                                        : loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.person_add_alt_1_rounded,
-                              size: 72,
-                              color: tema.colorScheme.primary,
-                            );
-                          },
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Text(
+                                'A',
+                                style: TextStyle(
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.bold,
+                                  color: tema.colorScheme.primary,
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _modoCadastro ? 'Criar sua conta' : 'Entrar com e-mail',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
+                        const SizedBox(height: 16),
+                        Text(
+                          _modoCadastro ? 'Criar sua conta' : 'Entrar com e-mail',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      if (_modoCadastro)
+                        const SizedBox(height: 24),
+                        if (_modoCadastro)
+                          TextFormField(
+                            controller: _nomeController,
+                            textCapitalization: TextCapitalization.words,
+                            decoration: const InputDecoration(
+                              labelText: 'Nome completo',
+                            ),
+                            validator: (value) {
+                              final nome = value?.trim() ?? '';
+                              if (_modoCadastro && nome.isEmpty) {
+                                return 'Informe seu nome.';
+                              }
+                              return null;
+                            },
+                          ),
+                        if (_modoCadastro) const SizedBox(height: 16),
                         TextFormField(
-                          controller: _nomeController,
-                          textCapitalization: TextCapitalization.words,
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
                           decoration: const InputDecoration(
-                            labelText: 'Nome completo',
-                            prefixIcon: Icon(Icons.badge_outlined),
+                            labelText: 'E-mail',
                           ),
                           validator: (value) {
-                            final nome = value?.trim() ?? '';
-                            if (_modoCadastro && nome.isEmpty) {
-                              return 'Informe seu nome.';
+                            final email = value?.trim() ?? '';
+                            if (email.isEmpty) {
+                              return 'Informe seu e-mail.';
+                            }
+                            if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+                              return 'E-mail inválido.';
                             }
                             return null;
                           },
                         ),
-                      if (_modoCadastro) const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: 'E-mail',
-                          prefixIcon: Icon(Icons.email_outlined),
-                        ),
-                        validator: (value) {
-                          final email = value?.trim() ?? '';
-                          if (email.isEmpty) {
-                            return 'Informe seu e-mail.';
-                          }
-                          if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
-                            return 'E-mail inválido.';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _senhaController,
-                        obscureText: !_mostrarSenha,
-                        decoration: InputDecoration(
-                          labelText: 'Senha',
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          suffixIcon: IconButton(
-                            tooltip: _mostrarSenha ? 'Ocultar senha' : 'Mostrar senha',
-                            onPressed: () {
-                              setState(() => _mostrarSenha = !_mostrarSenha);
-                            },
-                            icon: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 180),
-                              transitionBuilder: (child, animation) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: ScaleTransition(
-                                    scale: animation,
-                                    child: child,
-                                  ),
-                                );
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _senhaController,
+                          obscureText: !_mostrarSenha,
+                          decoration: InputDecoration(
+                            labelText: 'Senha',
+                            suffixIcon: IconButton(
+                              tooltip: _mostrarSenha ? 'Ocultar senha' : 'Mostrar senha',
+                              onPressed: () {
+                                setState(() => _mostrarSenha = !_mostrarSenha);
                               },
-                              child: Icon(
-                                _mostrarSenha
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                key: ValueKey(_mostrarSenha),
+                              icon: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 180),
+                                transitionBuilder: (child, animation) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: ScaleTransition(
+                                      scale: animation,
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: Icon(
+                                  _mostrarSenha
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  key: ValueKey(_mostrarSenha),
+                                ),
                               ),
                             ),
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Informe sua senha.';
+                            }
+                            if (value.length < 6) {
+                              return 'A senha deve ter pelo menos 6 caracteres.';
+                            }
+                            return null;
+                          },
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Informe sua senha.';
-                          }
-                          if (value.length < 6) {
-                            return 'A senha deve ter pelo menos 6 caracteres.';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 18),
-                      if (!_modoCadastro)
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: tema.brightness == Brightness.dark
-                                  ? const Color(0xFF8BC7FF)
+                        const SizedBox(height: 18),
+                        if (!_modoCadastro)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                foregroundColor: tema.brightness == Brightness.dark
+                                    ? const Color(0xFF8BC7FF)
+                                    : const Color(0xFF1769AA),
+                              ),
+                              onPressed: _carregando ? null : _recuperarSenha,
+                              child: const Text('Esqueci a senha'),
+                            ),
+                          ),
+                        const SizedBox(height: 10),
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: corBotao,
+                            foregroundColor: corTextoBotao,
+                          ),
+                          onPressed: _carregando ? null : _submit,
+                          icon: _carregando
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.login),
+                          label: Text(_modoCadastro ? 'Criar conta' : 'Entrar'),
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: const [
+                            Expanded(child: Divider()),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 12),
+                              child: Text('ou'),
+                            ),
+                            Expanded(child: Divider()),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: tema.brightness == Brightness.dark
+                                ? Colors.white
+                                : const Color(0xFF123B68),
+                            side: BorderSide(
+                              color: tema.brightness == Brightness.dark
+                                  ? Colors.white54
                                   : const Color(0xFF1769AA),
                             ),
-                            onPressed: _carregando ? null : _recuperarSenha,
-                            child: const Text('Esqueci a senha'),
                           ),
+                          onPressed: _carregando ? null : _entrarComGoogle,
+                          child: const Text('Entrar com Google'),
                         ),
-                      const SizedBox(height: 10),
-                      FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: corBotao,
-                          foregroundColor: corTextoBotao,
-                        ),
-                        onPressed: _carregando ? null : _submit,
-                        icon: _carregando
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.login),
-                        label: Text(_modoCadastro ? 'Criar conta' : 'Entrar'),
-                      ),
-                      const SizedBox(height: 14),
-                      Row(
-                        children: const [
-                          Expanded(child: Divider()),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            child: Text('ou'),
-                          ),
-                          Expanded(child: Divider()),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: tema.brightness == Brightness.dark
-                              ? Colors.white
-                              : const Color(0xFF123B68),
-                          side: BorderSide(
-                            color: tema.brightness == Brightness.dark
-                                ? Colors.white54
+                        const SizedBox(height: 14),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: tema.brightness == Brightness.dark
+                                ? const Color(0xFF8BC7FF)
                                 : const Color(0xFF1769AA),
                           ),
+                          onPressed: _carregando
+                              ? null
+                              : () {
+                                  setState(() => _modoCadastro = !_modoCadastro);
+                                },
+                          child: Text(
+                            _modoCadastro
+                                ? 'Já tenho conta. Entrar'
+                                : 'Criar conta com e-mail',
+                          ),
                         ),
-                        onPressed: _carregando ? null : _entrarComGoogle,
-                        icon: const Icon(Icons.g_mobiledata_rounded),
-                        label: const Text('Entrar com Google'),
-                      ),
-                      const SizedBox(height: 14),
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          foregroundColor: tema.brightness == Brightness.dark
-                              ? const Color(0xFF8BC7FF)
-                              : const Color(0xFF1769AA),
-                        ),
-                        onPressed: _carregando
-                            ? null
-                            : () {
-                                setState(() => _modoCadastro = !_modoCadastro);
-                              },
-                        child: Text(
-                          _modoCadastro
-                              ? 'Já tenho conta. Entrar'
-                              : 'Criar conta com e-mail',
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
+          if (widget.onAlternarTema != null)
+            Positioned(
+              top: 18,
+              right: 18,
+              child: TextButton.icon(
+                onPressed: widget.onAlternarTema,
+                style: TextButton.styleFrom(
+                  backgroundColor: tema.colorScheme.surface.withValues(alpha: 0.75),
+                  foregroundColor: tema.colorScheme.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  switchInCurve: Curves.easeOutBack,
+                  switchOutCurve: Curves.easeInBack,
+                  child: Icon(
+                    widget.modoEscuro
+                        ? Icons.light_mode_outlined
+                        : Icons.dark_mode_outlined,
+                    key: ValueKey('tema-${widget.modoEscuro ? 'claro' : 'escuro'}'),
+                  ),
+                ),
+                label: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  child: Text(
+                    widget.modoEscuro ? 'Claro' : 'Escuro',
+                    key: ValueKey('texto-${widget.modoEscuro ? 'claro' : 'escuro'}'),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

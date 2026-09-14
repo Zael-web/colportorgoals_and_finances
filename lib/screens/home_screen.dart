@@ -162,9 +162,6 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final temaEscuro = Theme.of(context).brightness == Brightness.dark;
-    final corPainel = temaEscuro
-        ? const Color(0xFF0B294D)
-        : const Color(0xFFDCECF8);
     final corTextoPainel = temaEscuro ? Colors.white : const Color(0xFF123B68);
     final progresso = metaBolsaGlobal == 0
         ? 0.0
@@ -175,207 +172,191 @@ class _DashboardPageState extends State<DashboardPage> {
       appBar: AppBar(
         title: const Text('Colporto planejamento'),
         actions: [
-          IconButton(
+          TextButton(
             onPressed: widget.onAbrirUsuario,
-            icon: const Icon(Icons.person_outline),
-            tooltip: 'Abrir perfil do usuário',
+            child: const Text('Perfil'),
           ),
         ],
       ),
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-
-          children: [
-            Text(
-              'Bom dia, $nomeUsuario 👋',
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 6),
-
-            Text(
-              'Aqui está o resumo da sua campanha.',
-              style: TextStyle(
-                fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            Container(
-              padding: const EdgeInsets.all(20),
-
-              decoration: BoxDecoration(
-                color: corPainel,
-                borderRadius: BorderRadius.circular(20),
-              ),
-
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1000),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Bom dia, $nomeUsuario 👋',
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Aqui está o resumo da sua campanha.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: temaEscuro
+                          ? const [Color(0xFF0B294D), Color(0xFF123F6C)]
+                          : const [Color(0xFFDCECF8), Color(0xFFF5FAFF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: temaEscuro ? Colors.white12 : Colors.blueGrey.shade100,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (temaEscuro ? Colors.black : Colors.blueGrey)
+                            .withValues(alpha: 0.05),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Meta da Bolsa',
                         style: TextStyle(
                           color: corTextoPainel.withValues(alpha: 0.72),
-                          fontSize: 16,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-
-                      Icon(Icons.emoji_events, color: corTextoPainel),
+                      const SizedBox(height: 12),
+                      Text(
+                        formatarMoedaGlobal(metaBolsaGlobal),
+                        style: TextStyle(
+                          color: corTextoPainel,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      LinearProgressIndicator(
+                        value: progresso / 100,
+                        minHeight: 12,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        '$progresso% concluído',
+                        style: TextStyle(
+                          color: corTextoPainel,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Falta: ${formatarMoedaGlobal(faltaParaBolsa())}',
+                        style: TextStyle(color: corTextoPainel, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Dias restantes: ${diasRestantes()}',
+                        style: TextStyle(color: corTextoPainel, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Meta diária: ${formatarMoedaGlobal(metaDiariaNecessaria())}',
+                        style: TextStyle(color: corTextoPainel, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Total comprado + dizimo: ${formatarMoedaGlobal(totalComprado())}',
+                        style: TextStyle(color: corTextoPainel, fontSize: 16),
+                      ),
                     ],
                   ),
-
-                  const SizedBox(height: 12),
-
-                  Text(
-                    formatarMoedaGlobal(metaBolsaGlobal),
-                    style: TextStyle(
-                      color: corTextoPainel,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Resumo Geral',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: dashboardCard(
+                        titulo: 'Vendido',
+                        valor: formatarMoedaGlobal(totalVendido()),
+                        cor: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: dashboardCard(
+                        titulo: 'Total comprado',
+                        valor: formatarMoedaGlobal(totalComprado()),
+                        cor: Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                dashboardCard(
+                  titulo: 'Lucro total',
+                  valor: formatarMoedaGlobal(totalLucroGlobal()),
+                  cor: Colors.teal,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: dashboardCard(
+                        titulo: 'Total de Livros vendidos',
+                        valor: '${totalLivros()}',
+                        cor: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: dashboardCard(
+                        titulo: 'Meta/Dia',
+                        valor: formatarMoedaGlobal(metaDiariaNecessaria()),
+                        cor: Colors.purple,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28),
+                const Text(
+                  'Últimos Registros',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                if (registrosDoPlanejamentoAtual().isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text('Nenhum registro ainda'),
                     ),
                   ),
-
-                  const SizedBox(height: 14),
-
-                  LinearProgressIndicator(
-                    value: progresso / 100,
-                    minHeight: 10,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  Text(
-                    '$progresso% concluído',
-                    style: TextStyle(color: corTextoPainel),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Falta: ${formatarMoedaGlobal(faltaParaBolsa())}',
-                    style: TextStyle(color: corTextoPainel, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Dias restantes: ${diasRestantes()}',
-                    style: TextStyle(color: corTextoPainel, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Meta diária: ${formatarMoedaGlobal(metaDiariaNecessaria())}',
-                    style: TextStyle(color: corTextoPainel, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Total comprado + dizimo: ${formatarMoedaGlobal(totalComprado())}',
-                    style: TextStyle(color: corTextoPainel, fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            const Text(
-              'Resumo Geral',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 16),
-
-            Row(
-              children: [
-                Expanded(
-                  child: dashboardCard(
-                    titulo: 'Vendido',
-                    valor: formatarMoedaGlobal(totalVendido()),
-                    cor: Colors.blue,
-                    icone: Icons.attach_money,
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                Expanded(
-                  child: dashboardCard(
-                    titulo: 'Total comprado',
-                    valor: formatarMoedaGlobal(totalComprado()),
-                    cor: Colors.orange,
-                    icone: Icons.shopping_cart,
-                  ),
-                ),
+                ...registrosDoPlanejamentoAtual().reversed.map((registro) {
+                  return registroTile(
+                    '${registro.data.day}/${registro.data.month}/${registro.data.year}',
+                    formatarMoedaGlobal(registro.vendido),
+                    '${registro.quantidade} livros',
+                  );
+                }),
               ],
             ),
-
-            const SizedBox(height: 12),
-
-            dashboardCard(
-              titulo: 'Lucro total',
-              valor: formatarMoedaGlobal(totalLucroGlobal()),
-              cor: Colors.teal,
-              icone: Icons.savings,
-            ),
-
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                Expanded(
-                  child: dashboardCard(
-                    titulo: 'Total de Livros vendidos',
-                    valor: '${totalLivros()}',
-                    cor: Colors.blue,
-                    icone: Icons.menu_book,
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-                Expanded(
-                  child: dashboardCard(
-                    titulo: 'Meta/Dia',
-                    valor: formatarMoedaGlobal(metaDiariaNecessaria()),
-                    cor: Colors.purple,
-                    icone: Icons.flag,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 28),
-
-            const Text(
-              'Últimos Registros',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 16),
-
-            if (registrosDoPlanejamentoAtual().isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Text('Nenhum registro ainda'),
-                ),
-              ),
-
-            ...registrosDoPlanejamentoAtual().reversed.map((registro) {
-              return registroTile(
-                '${registro.data.day}/${registro.data.month}/${registro.data.year}',
-                formatarMoedaGlobal(registro.vendido),
-                '${registro.quantidade} livros',
-              );
-            }),
-          ],
+          ),
         ),
       ),
     );
@@ -385,48 +366,54 @@ class _DashboardPageState extends State<DashboardPage> {
     required String titulo,
     required String valor,
     required Color cor,
-    required IconData icone,
   }) {
     final temaEscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
+      height: 138,
       padding: const EdgeInsets.all(18),
-
       decoration: BoxDecoration(
-        color: temaEscuro ? const Color(0xFF0B294D) : const Color(0xFFE4F1FA),
+        gradient: LinearGradient(
+          colors: temaEscuro
+              ? const [Color(0xFF0B294D), Color(0xFF123F6C)]
+              : const [Color(0xFFDCECF8), Color(0xFFF5FAFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(18),
-
+        border: Border.all(
+          color: temaEscuro ? Colors.white12 : Colors.blueGrey.shade100,
+        ),
         boxShadow: [
           BoxShadow(
-            blurRadius: 10,
-            color: Colors.black.withValues(alpha: 0.05),
+            color: (temaEscuro ? Colors.black : Colors.blueGrey)
+                .withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircleAvatar(
-            backgroundColor: cor,
-
-            child: Icon(icone, color: Colors.white),
-          ),
-
-          const SizedBox(height: 14),
-
           Text(
             titulo,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: temaEscuro ? Colors.white70 : const Color(0xFF35607F),
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
             ),
           ),
-
-          const SizedBox(height: 6),
-
+          const SizedBox(height: 8),
           Text(
             valor,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: temaEscuro ? Colors.white : const Color(0xFF123B68),
+            ),
           ),
         ],
       ),
@@ -437,51 +424,56 @@ class _DashboardPageState extends State<DashboardPage> {
     final temaEscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-
       padding: const EdgeInsets.all(16),
-
       decoration: BoxDecoration(
-        color: temaEscuro ? const Color(0xFF143A60) : Colors.white,
+        gradient: LinearGradient(
+          colors: temaEscuro
+              ? const [Color(0xFF0B294D), Color(0xFF123F6C)]
+              : const [Color(0xFFDCECF8), Color(0xFFF5FAFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
-
+        border: Border.all(
+          color: temaEscuro ? Colors.white12 : Colors.blueGrey.shade100,
+        ),
         boxShadow: [
-          BoxShadow(blurRadius: 8, color: Colors.black.withValues(alpha: 0.04)),
+          BoxShadow(
+            color: (temaEscuro ? Colors.black : Colors.blueGrey)
+                .withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
-
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-
             children: [
               Text(
                 data,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
+                  color: temaEscuro ? Colors.white : const Color(0xFF123B68),
                 ),
               ),
-
               const SizedBox(height: 4),
-
               Text(
                 livros,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: temaEscuro ? Colors.white70 : const Color(0xFF35607F),
                 ),
               ),
             ],
           ),
-
           Text(
             valor,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.blue,
+              color: temaEscuro ? Colors.white : Colors.blue,
             ),
           ),
         ],

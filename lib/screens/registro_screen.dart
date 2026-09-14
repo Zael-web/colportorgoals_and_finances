@@ -263,9 +263,10 @@ class _RegistroScreenState extends State<RegistroScreen> {
     );
   }
 
-  Future<void> salvarRegistro() async {
+  Future<void> salvarRegistro({int? indiceParaEditar}) async {
     final currentContext = context;
-    final estavaEditando = indiceEditando != null;
+    final indiceAtual = indiceParaEditar ?? indiceEditando;
+    final estavaEditando = indiceAtual != null;
     final totalCompradoAntes = totalComprado;
     final messenger = ScaffoldMessenger.maybeOf(currentContext);
     final planejamentoId = await garantirPlanejamentoParaRegistro();
@@ -319,8 +320,8 @@ class _RegistroScreenState extends State<RegistroScreen> {
     );
 
     setState(() {
-      if (indiceEditando != null) {
-        registrosGlobais[indiceEditando!] = novoRegistro;
+      if (indiceAtual != null) {
+        registrosGlobais[indiceAtual] = novoRegistro;
       } else {
         registrosGlobais.add(novoRegistro);
       }
@@ -430,54 +431,56 @@ class _RegistroScreenState extends State<RegistroScreen> {
     required Color cor,
   }) {
     final temaEscuro = Theme.of(context).brightness == Brightness.dark;
+    final corFundo = temaEscuro
+        ? const Color(0xFF122F4F)
+        : const Color(0xFFF5FAFF);
+
     return Container(
+      width: double.infinity,
+      height: 118,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: temaEscuro ? const Color(0xFF0B294D) : const Color(0xFFE4F1FA),
-        borderRadius: BorderRadius.circular(18),
+        color: corFundo,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: temaEscuro ? Colors.white12 : Colors.blueGrey.shade100,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.white.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            color: (temaEscuro ? Colors.black : Colors.blueGrey)
+                .withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: cor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
+          Text(
+            titulo,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12.5,
+              color: temaEscuro
+                  ? Colors.white70
+                  : const Color(0xFF35607F),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.1,
             ),
-            child: Icon(icone, color: cor),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  titulo,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: temaEscuro
-                        ? Colors.white70
-                        : const Color(0xFF35607F),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  valor,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 8),
+          Text(
+            valor,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: temaEscuro ? Colors.white : const Color(0xFF123B68),
             ),
           ),
         ],
@@ -488,44 +491,50 @@ class _RegistroScreenState extends State<RegistroScreen> {
   Widget _statTile(String titulo, String valor, IconData icone, Color cor) {
     final temaEscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
+      width: double.infinity,
+      height: 110,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: temaEscuro ? const Color(0xFF0B294D) : const Color(0xFFE4F1FA),
-        borderRadius: BorderRadius.circular(18),
+        color: temaEscuro ? const Color(0xFF102F4E) : const Color(0xFFF8FBFF),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: temaEscuro ? Colors.white24 : Colors.blueGrey.shade100,
+          color: temaEscuro ? Colors.white12 : Colors.blueGrey.shade100,
         ),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: cor.withValues(alpha: 0.12),
-            child: Icon(icone, color: cor),
+        boxShadow: [
+          BoxShadow(
+            color: (temaEscuro ? Colors.black : Colors.blueGrey)
+                .withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  titulo,
-                  style: TextStyle(
-                    color: temaEscuro
-                        ? Colors.white54
-                        : const Color(0xFF35607F),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  valor,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            titulo,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: temaEscuro
+                  ? Colors.white60
+                  : const Color(0xFF35607F),
+              fontWeight: FontWeight.w600,
+              fontSize: 12.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            valor,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: temaEscuro ? Colors.white : const Color(0xFF123B68),
             ),
           ),
         ],
@@ -534,23 +543,362 @@ class _RegistroScreenState extends State<RegistroScreen> {
   }
 
   Widget _chipInfo(IconData icone, String texto, Color cor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: cor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(999),
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: 36,
+        minWidth: 120,
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icone, size: 18, color: cor),
-          const SizedBox(width: 6),
-          Text(
-            texto,
-            style: TextStyle(color: cor, fontWeight: FontWeight.w600),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: temaEscuro
+              ? cor.withValues(alpha: 0.15)
+              : cor.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: temaEscuro
+                ? cor.withValues(alpha: 0.22)
+                : cor.withValues(alpha: 0.14),
           ),
-        ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icone,
+              size: 14,
+              color: cor,
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                texto,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: temaEscuro ? Colors.white : cor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.5,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Future<void> _abrirModalEdicaoRegistro(int indice) async {
+    final registro = registrosGlobais[indice];
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
+
+    setState(() {
+      materialSelecionadoNome = registro.material;
+      quantidadeController.text = registro.quantidade.toString();
+      observacaoController.text = registro.observacao;
+      formaPagamentoSelecionada = registro.formaPagamento;
+      dataSelecionada = registro.data;
+    });
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          backgroundColor: temaEscuro ? const Color(0xFF102D45) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Editar registro',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: temaEscuro ? Colors.white : const Color(0xFF123B68),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        icon: const Icon(Icons.close),
+                        tooltip: 'Fechar',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: materialSelecionadoNome,
+                    isExpanded: true,
+                    dropdownColor: temaEscuro ? const Color(0xFF102D45) : Colors.white,
+                    items: _materialItems(),
+                    decoration: InputDecoration(
+                      labelText: 'Selecione o material',
+                      filled: true,
+                      fillColor: temaEscuro ? const Color(0xFF102D45) : Colors.white,
+                      border: const OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() {
+                        materialSelecionadoNome = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: quantidadeController,
+                    onChanged: (_) => setState(() {}),
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Quantidade de livros',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: formaPagamentoSelecionada,
+                    dropdownColor: temaEscuro ? const Color(0xFF102D45) : Colors.white,
+                    decoration: const InputDecoration(
+                      labelText: 'Forma de pagamento',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'Dinheiro', child: Text('Dinheiro')),
+                      DropdownMenuItem(value: 'PIX', child: Text('PIX')),
+                      DropdownMenuItem(value: 'Cartão', child: Text('Cartão')),
+                    ],
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() {
+                        formaPagamentoSelecionada = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: observacaoController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Observação',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _previewCard(),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () async {
+                            Navigator.of(dialogContext).pop();
+                            await salvarRegistro(indiceParaEditar: indice);
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: const Color(0xFF0B294D),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text('Salvar alterações'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.red.withValues(alpha: 0.08),
+                            foregroundColor: Colors.red,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text('Fechar'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _mostrarDetalhesRegistro(int indice) async {
+    final registro = registrosGlobais[indice];
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          backgroundColor: temaEscuro ? const Color(0xFF102D45) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          registro.material.isEmpty
+                              ? 'Registro diário'
+                              : registro.material,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: temaEscuro ? Colors.white : const Color(0xFF123B68),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        icon: const Icon(Icons.close),
+                        tooltip: 'Fechar',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    formatarData(registro.data),
+                    style: TextStyle(
+                      color: temaEscuro
+                          ? Colors.white70
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      _chipInfo(Icons.menu_book, registro.material, const Color.fromARGB(255, 11, 41, 77)),
+                      _chipInfo(Icons.shopping_basket, 'Qtd ${registro.quantidade}', Colors.orange),
+                      _chipInfo(Icons.trending_up, 'Vendido ${formatarMoeda(registro.vendido)}', Colors.green),
+                      _chipInfo(Icons.inventory_2, 'Pago ${formatarMoeda(registro.comprado)}', Colors.purple),
+                      _chipInfo(Icons.trending_up, 'Lucro ${formatarMoeda(calcularLucroRegistro(registro))}', Colors.teal),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      _chipInfo(
+                        registro.formaPagamento == 'Cartão'
+                            ? Icons.credit_card
+                            : registro.formaPagamento == 'PIX'
+                            ? Icons.qr_code
+                            : Icons.payments,
+                        _labelFormaPagamento(registro.formaPagamento),
+                        Colors.deepPurple,
+                      ),
+                      _chipInfo(Icons.percent, 'Dízimo ${formatarMoeda(registro.dizimo)}', Colors.indigo),
+                      _chipInfo(Icons.credit_card, 'Taxa cartão ${formatarMoeda(registro.taxaCartao)}', Colors.red),
+                      _chipInfo(Icons.account_balance_wallet, 'Líquido ${formatarMoeda(registro.valorLiquido)}', Colors.teal),
+                    ],
+                  ),
+                  if (registro.observacao.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: temaEscuro ? const Color(0xFF163A5D) : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Text(
+                        registro.observacao,
+                        style: TextStyle(
+                          color: temaEscuro ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                            _abrirModalEdicaoRegistro(indice);
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: temaEscuro
+                                ? const Color(0xFF0B294D)
+                                : const Color(0xFFDCECF8),
+                            foregroundColor: temaEscuro
+                                ? Colors.white
+                                : const Color(0xFF123B68),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text('Editar'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => confirmarExclusao(indice),
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.red.withValues(alpha: 0.08),
+                            foregroundColor: Colors.red,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text('Excluir'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('Fechar'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -558,38 +906,33 @@ class _RegistroScreenState extends State<RegistroScreen> {
     final registro = registrosGlobais[indice];
     final temaEscuro = Theme.of(context).brightness == Brightness.dark;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
+      decoration: BoxDecoration(
+        color: temaEscuro ? const Color(0xFF102D45) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: temaEscuro ? Colors.white24 : Colors.blueGrey.shade100,
+        border: Border.all(
+          color: temaEscuro ? Colors.white12 : Colors.blueGrey.shade100,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: (temaEscuro ? Colors.black : Colors.blueGrey)
+                .withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => _mostrarDetalhesRegistro(indice),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: temaEscuro
-                        ? const Color(0xFF1B4A76)
-                        : Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    Icons.receipt_long,
-                    color: temaEscuro ? Colors.white : const Color(0xFF0B294D),
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -598,156 +941,51 @@ class _RegistroScreenState extends State<RegistroScreen> {
                         registro.material.isEmpty
                             ? 'Registro diário'
                             : registro.material,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: temaEscuro
+                              ? Colors.white
+                              : const Color(0xFF123B68),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         formatarData(registro.data),
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: temaEscuro
+                              ? Colors.white70
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
                   ),
                 ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'editar') {
-                      preencherParaEdicao(indice);
-                    } else if (value == 'excluir') {
-                      confirmarExclusao(indice);
-                    }
-                  },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(value: 'editar', child: Text('Editar')),
-                    PopupMenuItem(value: 'excluir', child: Text('Excluir')),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      formatarMoeda(registro.vendido),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: temaEscuro ? Colors.white : Colors.green,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Detalhes',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: temaEscuro ? Colors.white70 : Colors.blue,
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                _chipInfo(
-                  Icons.menu_book,
-                  registro.material,
-                  const Color.fromARGB(255, 11, 41, 77),
-                ),
-                _chipInfo(
-                  Icons.shopping_basket,
-                  'Qtd ${registro.quantidade}',
-                  Colors.orange,
-                ),
-                _chipInfo(
-                  Icons.trending_up,
-                  'Vendido ${formatarMoeda(registro.vendido)}',
-                  Colors.green,
-                ),
-                _chipInfo(
-                  Icons.inventory_2,
-                  'Pago ${formatarMoeda(registro.comprado)}',
-                  Colors.purple,
-                ),
-                _chipInfo(
-                  Icons.trending_up,
-                  'Lucro ${formatarMoeda(calcularLucroRegistro(registro))}',
-                  Colors.teal,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                _chipInfo(
-                  registro.formaPagamento == 'Cartão'
-                      ? Icons.credit_card
-                      : registro.formaPagamento == 'PIX'
-                      ? Icons.qr_code
-                      : Icons.payments,
-                  _labelFormaPagamento(registro.formaPagamento),
-                  Colors.deepPurple,
-                ),
-                _chipInfo(
-                  Icons.percent,
-                  'Dízimo ${formatarMoeda(registro.dizimo)}',
-                  Colors.indigo,
-                ),
-                _chipInfo(
-                  Icons.credit_card,
-                  'Taxa cartão ${formatarMoeda(registro.taxaCartao)}',
-                  Colors.red,
-                ),
-                _chipInfo(
-                  Icons.account_balance_wallet,
-                  'Líquido ${formatarMoeda(registro.valorLiquido)}',
-                  Colors.teal,
-                ),
-              ],
-            ),
-            if (registro.observacao.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: temaEscuro
-                      ? const Color(0xFF163A5D)
-                      : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Text(
-                  registro.observacao,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => preencherParaEdicao(indice),
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Editar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: temaEscuro
-                          ? const Color(0xFF0B294D)
-                          : const Color(0xFFDCECF8),
-                      foregroundColor: temaEscuro
-                          ? Colors.white
-                          : const Color(0xFF123B68),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => confirmarExclusao(indice),
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    label: const Text('Excluir'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -868,379 +1106,365 @@ class _RegistroScreenState extends State<RegistroScreen> {
         title: const Text('Registro Diário'),
         elevation: 0,
         actions: [
-          IconButton(
+          TextButton(
             onPressed: escolherFiltro,
-            icon: const Icon(Icons.filter_alt),
-            tooltip: 'Filtrar por data',
+            child: const Text('Filtrar'),
           ),
           if (dataFiltro != null)
-            IconButton(
+            TextButton(
               onPressed: limparFiltro,
-              icon: const Icon(Icons.clear),
-              tooltip: 'Limpar filtro',
+              child: const Text('Limpar'),
             ),
         ],
       ),
-
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [corPainel, corPainel],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(22),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color.fromARGB(255, 11, 41, 77),
-                        blurRadius: 18,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Resumo da Campanha',
-                        style: TextStyle(
-                          color: corTextoPainel.withValues(alpha: 0.72),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1100),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [corPainel, corPainel],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color.fromARGB(255, 11, 41, 77),
+                            blurRadius: 18,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 14),
-                      _summaryCard(
-                        titulo: 'Total vendido',
-                        valor: formatarMoeda(totalVendido),
-                        icone: Icons.trending_up,
-                        cor: corTextoPainel,
-                      ),
-                      const SizedBox(height: 10),
-                      _summaryCard(
-                        titulo: 'Total pago (material + dízimo)',
-                        valor: formatarMoeda(totalComprado),
-                        icone: Icons.shopping_cart,
-                        cor: corTextoPainel,
-                      ),
-                      const SizedBox(height: 10),
-                      _summaryCard(
-                        titulo: 'Total de livros',
-                        valor: totalLivros.toString(),
-                        icone: Icons.menu_book,
-                        cor: corTextoPainel,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: corPainel,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color.fromARGB(255, 11, 41, 77),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            indiceEditando == null
-                                ? 'Novo registro'
-                                : 'Editar registro',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                            'Resumo da Campanha',
+                            style: TextStyle(
+                              color: corTextoPainel.withValues(alpha: 0.72),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          TextButton.icon(
-                            onPressed: escolherData,
-                            icon: const Icon(Icons.date_range),
-                            label: Text(formatarData(dataSelecionada)),
+                          const SizedBox(height: 14),
+                          _summaryCard(
+                            titulo: 'Total vendido',
+                            valor: formatarMoeda(totalVendido),
+                            icone: Icons.trending_up,
+                            cor: corTextoPainel,
+                          ),
+                          const SizedBox(height: 10),
+                          _summaryCard(
+                            titulo: 'Total pago (material + dízimo)',
+                            valor: formatarMoeda(totalComprado),
+                            icone: Icons.shopping_cart,
+                            cor: corTextoPainel,
+                          ),
+                          const SizedBox(height: 10),
+                          _summaryCard(
+                            titulo: 'Total de livros',
+                            valor: totalLivros.toString(),
+                            icone: Icons.menu_book,
+                            cor: corTextoPainel,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        initialValue: materialSelecionadoNome,
-                        isExpanded: true,
-                        dropdownColor: corPainel,
-                        items: _materialItems(),
-                        selectedItemBuilder: (context) {
-                          return materiaisGlobais.map((material) {
-                            return Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                material.nome,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                            );
-                          }).toList();
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Selecione o material',
-                          labelStyle: TextStyle(
-                            color: corTextoPainel.withValues(alpha: 0.72),
-                          ),
-                          filled: true,
-                          fillColor: corPainel,
-                          border: OutlineInputBorder(),
-                        ),
-                        onChanged: temMateriais
-                            ? (value) {
-                                setState(() {
-                                  materialSelecionadoNome = value;
-                                });
-                              }
-                            : null,
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: quantidadeController,
-                        onChanged: (_) => setState(() {}),
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'Quantidade de livros',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        initialValue: formaPagamentoSelecionada,
-                        dropdownColor: corPainel,
-                        decoration: const InputDecoration(
-                          labelText: 'Forma de pagamento',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'Dinheiro',
-                            child: Text('Dinheiro'),
-                          ),
-                          DropdownMenuItem(value: 'PIX', child: Text('PIX')),
-                          DropdownMenuItem(
-                            value: 'Cartão',
-                            child: Text('Cartão'),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: corPainel,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color.fromARGB(255, 11, 41, 77),
+                            blurRadius: 16,
+                            offset: const Offset(0, 8),
                           ),
                         ],
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() {
-                            formaPagamentoSelecionada = value;
-                          });
-                        },
                       ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: observacaoController,
-                        maxLines: 2,
-                        decoration: const InputDecoration(
-                          labelText: 'Observação',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      _previewCard(),
-                      const SizedBox(height: 14),
-                      Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: temMateriais ? salvarRegistro : null,
-                              icon: Icon(
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
                                 indiceEditando == null
-                                    ? Icons.save
-                                    : Icons.check,
-                              ),
-                              label: Text(
-                                indiceEditando == null
-                                    ? 'Salvar Registro'
-                                    : 'Salvar Alteração',
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(
-                                  255,
-                                  9,
-                                  197,
-                                  56,
-                                ).withValues(alpha: 0.8),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                    ? 'Novo registro'
+                                    : 'Editar registro',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                minimumSize: const Size.fromHeight(52),
                               ),
+                              TextButton(
+                                onPressed: escolherData,
+                                child: Text(formatarData(dataSelecionada)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<String>(
+                            initialValue: materialSelecionadoNome,
+                            isExpanded: true,
+                            dropdownColor: corPainel,
+                            items: _materialItems(),
+                            selectedItemBuilder: (context) {
+                              return materiaisGlobais.map((material) {
+                                return Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    material.nome,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                );
+                              }).toList();
+                            },
+                            decoration: InputDecoration(
+                              labelText: 'Selecione o material',
+                              labelStyle: TextStyle(
+                                color: corTextoPainel.withValues(alpha: 0.72),
+                              ),
+                              filled: true,
+                              fillColor: corPainel,
+                              border: const OutlineInputBorder(),
+                            ),
+                            onChanged: temMateriais
+                                ? (value) {
+                                    setState(() {
+                                      materialSelecionadoNome = value;
+                                    });
+                                  }
+                                : null,
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: quantidadeController,
+                            onChanged: (_) => setState(() {}),
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Quantidade de livros',
+                              border: OutlineInputBorder(),
                             ),
                           ),
-                          if (indiceEditando != null) ...[
-                            const SizedBox(width: 10),
-                            OutlinedButton(
-                              onPressed: () {
-                                setState(() {
-                                  limparFormulario();
-                                });
-                              },
-                              style: OutlinedButton.styleFrom(
-                                minimumSize: const Size(52, 52),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<String>(
+                            initialValue: formaPagamentoSelecionada,
+                            dropdownColor: corPainel,
+                            decoration: const InputDecoration(
+                              labelText: 'Forma de pagamento',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'Dinheiro',
+                                child: Text('Dinheiro'),
+                              ),
+                              DropdownMenuItem(value: 'PIX', child: Text('PIX')),
+                              DropdownMenuItem(
+                                value: 'Cartão',
+                                child: Text('Cartão'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value == null) return;
+                              setState(() {
+                                formaPagamentoSelecionada = value;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: observacaoController,
+                            maxLines: 2,
+                            decoration: const InputDecoration(
+                              labelText: 'Observação',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          _previewCard(),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: temMateriais ? salvarRegistro : null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color.fromARGB(
+                                      255,
+                                      9,
+                                      197,
+                                      56,
+                                    ).withValues(alpha: 0.8),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    minimumSize: const Size.fromHeight(52),
+                                  ),
+                                  child: Text(
+                                    indiceEditando == null
+                                        ? 'Salvar Registro'
+                                        : 'Salvar Alteração',
+                                  ),
                                 ),
                               ),
-                              child: const Icon(Icons.close),
+                              if (indiceEditando != null) ...[
+                                const SizedBox(width: 10),
+                                OutlinedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      limparFormulario();
+                                    });
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    minimumSize: const Size(52, 52),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  child: const Text('Fechar'),
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (!temMateriais) ...[
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Nenhum material disponível. Adicione materiais na tela Materiais.',
+                              style: TextStyle(color: Colors.red),
                             ),
                           ],
                         ],
                       ),
-                      if (!temMateriais) ...[
-                        const SizedBox(height: 12),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: corPainel,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: temaEscuro
+                              ? Colors.white24
+                              : Colors.blueGrey.shade100,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Estatísticas',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _statTile(
+                            'Melhor dia de vendas',
+                            formatarMoeda(melhorDiaVendas),
+                            Icons.emoji_events,
+                            Colors.amber,
+                          ),
+                          _statTile(
+                            'Total acumulado da campanha',
+                            formatarMoeda(totalAcumuladoCampanha),
+                            Icons.account_balance_wallet,
+                            corTextoPainel,
+                          ),
+                          _statTile(
+                            'Média diária de vendas',
+                            formatarMoeda(mediaDiariaVendas),
+                            Icons.show_chart,
+                            Colors.green,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
                         const Text(
-                          'Nenhum material disponível. Adicione materiais na tela Materiais.',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: corPainel,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: temaEscuro
-                          ? Colors.white24
-                          : Colors.blueGrey.shade100,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Estatísticas',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _statTile(
-                        'Melhor dia de vendas',
-                        formatarMoeda(melhorDiaVendas),
-                        Icons.emoji_events,
-                        Colors.amber,
-                      ),
-                      _statTile(
-                        'Total acumulado da campanha',
-                        formatarMoeda(totalAcumuladoCampanha),
-                        Icons.account_balance_wallet,
-                        corTextoPainel,
-                      ),
-                      _statTile(
-                        'Média diária de vendas',
-                        formatarMoeda(mediaDiariaVendas),
-                        Icons.show_chart,
-                        Colors.green,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Registros',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: escolherFiltro,
-                      icon: const Icon(Icons.filter_alt),
-                      label: const Text('Filtrar por Data'),
-                    ),
-                  ],
-                ),
-                if (dataFiltro != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
-                      children: [
-                        Chip(
-                          label: Text('Filtro: ${formatarData(dataFiltro!)}'),
-                        ),
-                        const SizedBox(width: 8),
-                        TextButton(
-                          onPressed: limparFiltro,
-                          child: const Text('Limpar'),
-                        ),
-                      ],
-                    ),
-                  ),
-                if (registrosVisiveis.isEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: corPainel,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: temaEscuro
-                            ? Colors.white24
-                            : Colors.blueGrey.shade100,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.inbox,
-                          size: 42,
-                          color: corTextoPainel.withValues(alpha: 0.54),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Nenhum registro encontrado',
+                          'Registros',
                           style: TextStyle(
-                            color: corTextoPainel.withValues(alpha: 0.54),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
+                        TextButton(
+                          onPressed: escolherFiltro,
+                          child: const Text('Filtrar por Data'),
+                        ),
                       ],
                     ),
-                  )
-                else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: registrosVisiveis.length,
-                    itemBuilder: (context, index) {
-                      return _registroCard(registrosVisiveis[index]);
-                    },
-                  ),
-              ],
+                    if (dataFiltro != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            Chip(
+                              label: Text('Filtro: ${formatarData(dataFiltro!)}'),
+                            ),
+                            const SizedBox(width: 8),
+                            TextButton(
+                              onPressed: limparFiltro,
+                              child: const Text('Limpar'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (registrosVisiveis.isEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: corPainel,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: temaEscuro
+                                ? Colors.white24
+                                : Colors.blueGrey.shade100,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Nenhum registro encontrado',
+                            style: TextStyle(
+                              color: corTextoPainel.withValues(alpha: 0.54),
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: registrosVisiveis.length,
+                        itemBuilder: (context, index) {
+                          return _registroCard(registrosVisiveis[index]);
+                        },
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

@@ -128,17 +128,40 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
   }
 
   Widget _materialCard(MaterialModel material) {
-    return Card(
-      elevation: 2,
-      child: ListTile(
-        leading: const CircleAvatar(
-          backgroundColor: Colors.blue,
-          child: Icon(Icons.menu_book, color: Colors.white),
+    final temaEscuro = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: temaEscuro
+              ? const [Color(0xFF0B294D), Color(0xFF123F6C)]
+              : const [Color(0xFFDCECF8), Color(0xFFF5FAFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: temaEscuro ? Colors.white12 : Colors.blueGrey.shade100,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (temaEscuro ? Colors.black : Colors.blueGrey)
+                .withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: ListTile(
         title: Text(
           material.nome,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: temaEscuro ? Colors.white : const Color(0xFF123B68),
+            fontWeight: FontWeight.w600,
+          ),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
@@ -146,8 +169,18 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Compra: ${formatarMoedaGlobal(material.valorCompra)}'),
-              Text('Venda: ${formatarMoedaGlobal(material.valorVenda)}'),
+              Text(
+                'Compra: ${formatarMoedaGlobal(material.valorCompra)}',
+                style: TextStyle(
+                  color: temaEscuro ? Colors.white70 : const Color(0xFF35607F),
+                ),
+              ),
+              Text(
+                'Venda: ${formatarMoedaGlobal(material.valorVenda)}',
+                style: TextStyle(
+                  color: temaEscuro ? Colors.white70 : const Color(0xFF35607F),
+                ),
+              ),
             ],
           ),
         ),
@@ -180,76 +213,92 @@ class _MateriaisScreenState extends State<MateriaisScreen> {
       appBar: AppBar(
         title: const Text('Materiais'),
         actions: [
-          IconButton(
+          TextButton(
             onPressed: () => _abrirFormulario(),
-            icon: const Icon(Icons.add),
-            tooltip: 'Adicionar material',
+            child: const Text('Adicionar'),
           ),
         ],
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: TextField(
-                    controller: buscaController,
-                    decoration: InputDecoration(
-                      labelText: 'Pesquisar material',
-                      prefixIcon: const Icon(Icons.search),
-                      border: InputBorder.none,
-                      suffixIcon: busca.isEmpty
-                          ? null
-                          : IconButton(
-                              onPressed: () {
-                                buscaController.clear();
-                                setState(() {
-                                  busca = '';
-                                });
-                              },
-                              icon: const Icon(Icons.clear),
-                            ),
-                    ),
-                    onChanged: (valor) {
-                      setState(() {
-                        busca = valor;
-                      });
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (materiaisFiltrados.isEmpty)
-                Expanded(
-                  child: Center(
-                    child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Text(
-                          busca.isEmpty
-                              ? 'Nenhum material cadastrado.'
-                              : 'Nenhum material encontrado para "$busca".',
-                          textAlign: TextAlign.center,
-                        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: Theme.of(context).brightness == Brightness.dark
+                            ? const [Color(0xFF0B294D), Color(0xFF123F6C)]
+                            : const [Color(0xFFDCECF8), Color(0xFFF5FAFF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white12
+                            : Colors.blueGrey.shade100,
                       ),
                     ),
+                    child: TextField(
+                      controller: buscaController,
+                      decoration: InputDecoration(
+                        labelText: 'Pesquisar material',
+                        border: InputBorder.none,
+                        suffixIcon: busca.isEmpty
+                            ? null
+                            : IconButton(
+                                onPressed: () {
+                                  buscaController.clear();
+                                  setState(() {
+                                    busca = '';
+                                  });
+                                },
+                                icon: const Icon(Icons.clear),
+                              ),
+                      ),
+                      onChanged: (valor) {
+                        setState(() {
+                          busca = valor;
+                        });
+                      },
+                    ),
                   ),
-                )
-              else
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: materiaisFiltrados.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      return _materialCard(materiaisFiltrados[index]);
-                    },
-                  ),
-                ),
-            ],
+                  const SizedBox(height: 16),
+                  if (materiaisFiltrados.isEmpty)
+                    Expanded(
+                      child: Center(
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              busca.isEmpty
+                                  ? 'Nenhum material cadastrado.'
+                                  : 'Nenhum material encontrado para "$busca".',
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: materiaisFiltrados.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          return _materialCard(materiaisFiltrados[index]);
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

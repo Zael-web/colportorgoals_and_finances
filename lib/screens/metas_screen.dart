@@ -167,9 +167,6 @@ class _MetasScreenState extends State<MetasScreen> {
   @override
   Widget build(BuildContext context) {
     final temaEscuro = Theme.of(context).brightness == Brightness.dark;
-    final corCard = temaEscuro
-        ? const Color(0xFF0B294D)
-        : const Color(0xFFDCECF8);
     final corTexto = temaEscuro ? Colors.white : const Color(0xFF123B68);
 
     final cardsResumo = [
@@ -197,48 +194,48 @@ class _MetasScreenState extends State<MetasScreen> {
       appBar: AppBar(
         title: const Text('Metas'),
         actions: [
-          IconButton(
+          TextButton(
             onPressed: planejamentoSelecionadoId == null
                 ? null
                 : abrirAcoesDaMeta,
-            icon: const Icon(Icons.edit),
-            tooltip: 'Editar meta',
+            child: const Text('Editar'),
           ),
         ],
       ),
       body: planejamentoSelecionadoId == null
           ? Center(
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.flag_outlined,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Nenhum planejamento ativo.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 700),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Nenhum planejamento ativo.',
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             )
           : SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isWide = constraints.maxWidth > 760;
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1000),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth > 760;
 
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                         Card(
                           clipBehavior: Clip.antiAlias,
                           shape: RoundedRectangleBorder(
@@ -274,10 +271,6 @@ class _MetasScreenState extends State<MetasScreen> {
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                       ),
-                                    ),
-                                    Icon(
-                                      Icons.emoji_events,
-                                      color: corTexto,
                                     ),
                                   ],
                                 ),
@@ -329,49 +322,84 @@ class _MetasScreenState extends State<MetasScreen> {
                             children: cardsResumo.map((item) {
                               return SizedBox(
                                 width: isWide ? 220 : double.infinity,
-                                child: Card(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 42,
-                                          height: 42,
-                                          decoration: BoxDecoration(
-                                            color: item.cor.withValues(alpha: 0.12),
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                          ),
-                                          child: Icon(
-                                            item.icone,
-                                            color: item.cor,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                item.titulo,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .labelMedium,
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                item.valor,
-                                                style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: temaEscuro
+                                          ? const [
+                                              Color(0xFF0B294D),
+                                              Color(0xFF123F6C),
+                                            ]
+                                          : const [
+                                              Color(0xFFDCECF8),
+                                              Color(0xFFF5FAFF),
                                             ],
-                                          ),
-                                        ),
-                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
                                     ),
+                                    borderRadius: BorderRadius.circular(18),
+                                    border: Border.all(
+                                      color: temaEscuro
+                                          ? Colors.white12
+                                          : Colors.blueGrey.shade100,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: (temaEscuro
+                                                ? Colors.black
+                                                : Colors.blueGrey)
+                                            .withValues(alpha: 0.05),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 42,
+                                        height: 42,
+                                        decoration: BoxDecoration(
+                                          color: item.cor.withValues(alpha: 0.12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Icon(
+                                          item.icone,
+                                          color: item.cor,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.titulo,
+                                              style: TextStyle(
+                                                color: temaEscuro
+                                                    ? Colors.white70
+                                                    : const Color(0xFF35607F),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              item.valor,
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                color: temaEscuro
+                                                    ? Colors.white
+                                                    : const Color(0xFF123B68),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               );
@@ -379,39 +407,72 @@ class _MetasScreenState extends State<MetasScreen> {
                           ),
                         ),
                         const SizedBox(height: 18),
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Detalhes da campanha',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 12),
-                                _InfoLinha(
-                                  icon: Icons.inventory_2,
-                                  label: 'Pago (material + dízimo)',
-                                  valor: formatarMoeda(totalPago()),
-                                ),
-                                const Divider(),
-                                _InfoLinha(
-                                  icon: Icons.trending_up,
-                                  label: 'Falta para atingir a meta',
-                                  valor: formatarMoeda(falta()),
-                                ),
-                              ],
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: temaEscuro
+                                  ? const [
+                                      Color(0xFF0B294D),
+                                      Color(0xFF123F6C),
+                                    ]
+                                  : const [
+                                      Color(0xFFDCECF8),
+                                      Color(0xFFF5FAFF),
+                                    ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: temaEscuro
+                                  ? Colors.white12
+                                  : Colors.blueGrey.shade100,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (temaEscuro ? Colors.black : Colors.blueGrey)
+                                    .withValues(alpha: 0.05),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Detalhes da campanha',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: temaEscuro
+                                      ? Colors.white
+                                      : const Color(0xFF123B68),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              _InfoLinha(
+                                label: 'Pago (material + dízimo)',
+                                valor: formatarMoeda(totalPago()),
+                              ),
+                              const Divider(
+                                color: Colors.white24,
+                              ),
+                              _InfoLinha(
+                                label: 'Falta para atingir a meta',
+                                valor: formatarMoeda(falta()),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                },
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
     );
@@ -434,12 +495,10 @@ class _ResumoItem {
 
 class _InfoLinha extends StatelessWidget {
   const _InfoLinha({
-    required this.icon,
     required this.label,
     required this.valor,
   });
 
-  final IconData icon;
   final String label;
   final String valor;
 
@@ -449,8 +508,6 @@ class _InfoLinha extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 12),
           Expanded(
             child: Text(
               label,
