@@ -309,10 +309,14 @@ class _DashboardPageState extends State<DashboardPage> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                dashboardCard(
-                  titulo: 'Lucro total',
-                  valor: formatarMoedaGlobal(totalLucroGlobal()),
-                  cor: Colors.teal,
+                SizedBox(
+                  width: double.infinity,
+                  child: dashboardCard(
+                    titulo: 'Lucro total',
+                    valor: formatarMoedaGlobal(totalLucroGlobal()),
+                    cor: Colors.teal,
+                    isFullWidth: true,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -366,10 +370,11 @@ class _DashboardPageState extends State<DashboardPage> {
     required String titulo,
     required String valor,
     required Color cor,
+    bool isFullWidth = false,
   }) {
     final temaEscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      height: 138,
+      height: isFullWidth ? 180 : 138,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -392,31 +397,60 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            titulo,
-            style: TextStyle(
-              color: temaEscuro ? Colors.white70 : const Color(0xFF35607F),
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
+      child: isFullWidth
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    titulo,
+                    style: TextStyle(
+                      color: temaEscuro ? Colors.white70 : const Color(0xFF35607F),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    valor,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: temaEscuro ? Colors.white : const Color(0xFF123B68),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  titulo,
+                  style: TextStyle(
+                    color: temaEscuro ? Colors.white70 : const Color(0xFF35607F),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  valor,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: temaEscuro ? Colors.white : const Color(0xFF123B68),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            valor,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: temaEscuro ? Colors.white : const Color(0xFF123B68),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
