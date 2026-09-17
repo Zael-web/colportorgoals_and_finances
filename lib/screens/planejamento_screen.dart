@@ -49,15 +49,11 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
           : formatarNumeroGlobal(planejamento.meta, casas: 0),
     );
     final diasController = TextEditingController(
-      text: planejamento?.quantidadeDias.toString() ?? '30',
+      text: planejamento?.quantidadeDias.toString() ?? '',
     );
     var dataInicio = planejamento?.dataInicio ?? DateTime.now();
     var feriados = [...?planejamento?.feriados];
-    var dataFim = Planejamento.calcularDataFim(
-      dataInicio: dataInicio,
-      quantidadeDias: planejamento?.quantidadeDias ?? 30,
-      feriados: feriados,
-    );
+    var dataFim = planejamento?.dataFim ?? dataInicio;
 
     final resultado = await showDialog<Planejamento>(
       context: context,
@@ -261,9 +257,9 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
               ),
               onPressed: () {
                 final textoMeta = metaController.text.trim();
-                final textoNormalizado = textoMeta.contains(',')
-                    ? textoMeta.replaceAll('.', '').replaceAll(',', '.')
-                    : textoMeta;
+                final textoNormalizado = textoMeta
+                  .replaceAll('.', '')
+                  .replaceAll(',', '.');
                 final meta = double.tryParse(textoNormalizado);
                 final quantidadeDias = int.tryParse(diasController.text.trim());
                 final nome = nomeController.text.trim();
@@ -394,8 +390,7 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
       0,
       double.infinity,
     );
-    final dias = dataFimGlobal.difference(DateTime.now()).inDays;
-    final diasRestantes = dias <= 0 ? 1 : dias;
+    final quantidadeDiasRestantes = diasRestantes();
     final progresso = metaBolsaGlobal == 0
         ? 0.0
         : (totalCompradoGlobal() / metaBolsaGlobal).clamp(0.0, 1.0);
@@ -408,9 +403,9 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
         cor: Colors.blue,
       ),
       _ResumoItemPlanejamento(
-        titulo: 'Pago',
-        valor: formatarMoedaGlobal(totalCompradoGlobal()),
-        icone: Icons.shopping_cart,
+        titulo: 'Meta diária',
+        valor: formatarMoedaGlobal(metaDiariaNecessaria()),
+        icone: Icons.today,
         cor: Colors.orange,
       ),
       _ResumoItemPlanejamento(
@@ -421,7 +416,7 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
       ),
       _ResumoItemPlanejamento(
         titulo: 'Dias',
-        valor: '$diasRestantes dias',
+        valor: '$quantidadeDiasRestantes dias',
         icone: Icons.calendar_month,
         cor: Colors.purple,
       ),
@@ -537,11 +532,13 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                           ),
                           const SizedBox(height: 16),
                           Wrap(
+                            alignment: WrapAlignment.center,
                             spacing: 12,
                             runSpacing: 12,
                             children: cardsResumo.map((item) {
                               return SizedBox(
-                                width: 160,
+                                width: 180,
+                                height: 100,
                                 child: Container(
                                   padding: const EdgeInsets.all(14),
                                   decoration: BoxDecoration(
@@ -556,6 +553,7 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                                     ),
                                   ),
                                   child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Container(
                                         width: 38,
@@ -573,10 +571,13 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                              CrossAxisAlignment.center,
                                           children: [
                                             Text(
                                               item.titulo,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.center,
                                               style: TextStyle(
                                                 color: temaEscuro
                                                     ? Colors.white70
@@ -586,6 +587,7 @@ class _PlanejamentoScreenState extends State<PlanejamentoScreen> {
                                             const SizedBox(height: 4),
                                             Text(
                                               item.valor,
+                                              textAlign: TextAlign.center,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 color: temaEscuro

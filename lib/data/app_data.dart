@@ -221,8 +221,19 @@ double faltaParaBolsa() {
 
 int diasRestantes() {
   final hoje = DateTime.now();
-
-  int dias = dataFimGlobal.difference(hoje).inDays;
+  final inicio = DateTime(hoje.year, hoje.month, hoje.day).isBefore(
+    DateTime(dataInicioGlobal.year, dataInicioGlobal.month, dataInicioGlobal.day),
+  )
+      ? dataInicioGlobal
+      : hoje;
+  final planejamento = planejamentosGlobais
+      .where((item) => item.id == planejamentoSelecionadoId)
+      .firstOrNull;
+  final dias = Planejamento.calcularQuantidadeDias(
+    dataInicio: inicio,
+    dataFim: dataFimGlobal,
+    feriados: planejamento?.feriados ?? const [],
+  );
 
   if (dias <= 0) {
     return 1;
@@ -394,7 +405,10 @@ Future<void> carregarPlanejamentos() async {
         meta: metaBolsaGlobal,
         dataInicio: dataInicioGlobal,
         dataFim: dataFimGlobal,
-        quantidadeDias: 30,
+        quantidadeDias: Planejamento.calcularQuantidadeDias(
+          dataInicio: dataInicioGlobal,
+          dataFim: dataFimGlobal,
+        ),
       ),
     ];
     await salvarListaPlanejamentos();
@@ -496,7 +510,10 @@ Future<String?> garantirPlanejamentoParaRegistro() async {
       meta: metaBolsaGlobal == 0 ? 18000 : metaBolsaGlobal,
       dataInicio: dataInicioGlobal,
       dataFim: dataFimGlobal,
-      quantidadeDias: 30,
+      quantidadeDias: Planejamento.calcularQuantidadeDias(
+        dataInicio: dataInicioGlobal,
+        dataFim: dataFimGlobal,
+      ),
     );
     planejamentosGlobais.add(planejamento);
     await salvarListaPlanejamentos();
