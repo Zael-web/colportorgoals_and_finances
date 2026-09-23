@@ -17,33 +17,12 @@ final ValueNotifier<int> dadosGlobaisVersion = ValueNotifier<int>(0);
 final FirestoreService _firestoreService = FirestoreService();
 
 List<MaterialModel> _materiaisPadrao() {
-  return [
-    MaterialModel(
-      nome: 'A Última Chamada',
-      valorCompra: 105.93,
-      valorVenda: 211.86,
-    ),
-    MaterialModel(
-      nome: 'Como Formar Filhos Vencedores',
-      valorCompra: 126.24,
-      valorVenda: 252.48,
-    ),
-    MaterialModel(
-      nome: '21 Dias para Mudar',
-      valorCompra: 106.32,
-      valorVenda: 212.64,
-    ),
-    MaterialModel(
-      nome: 'Revolucione seu Futuro',
-      valorCompra: 93.99,
-      valorVenda: 187.98,
-    ),
-  ];
+  return const [];
 }
 
 List<MaterialModel> materiaisGlobais = _materiaisPadrao();
 
-double metaBolsaGlobal = 18000;
+double metaBolsaGlobal = 0;
 
 DateTime dataInicioGlobal = DateTime.now();
 
@@ -80,7 +59,7 @@ void resetarDadosUsuarioAtual() {
   materiaisGlobais = _materiaisPadrao();
   planejamentosGlobais = [];
   planejamentoSelecionadoId = null;
-  metaBolsaGlobal = 18000;
+  metaBolsaGlobal = 0;
   dataInicioGlobal = DateTime.now();
   dataFimGlobal = DateTime.now().add(const Duration(days: 30));
 }
@@ -335,7 +314,7 @@ Future<void> salvarPlanejamento() async {
 Future<void> carregarPlanejamento() async {
   final prefs = await SharedPreferences.getInstance();
 
-  metaBolsaGlobal = prefs.getDouble(_keyDoUsuario('metaBolsaGlobal')) ?? 18000;
+  metaBolsaGlobal = prefs.getDouble(_keyDoUsuario('metaBolsaGlobal')) ?? 0;
 
   String? inicio = prefs.getString(_keyDoUsuario('dataInicioGlobal'));
   String? fim = prefs.getString(_keyDoUsuario('dataFimGlobal'));
@@ -507,7 +486,7 @@ Future<String?> garantirPlanejamentoParaRegistro() async {
     final planejamento = Planejamento(
       id: 'principal',
       nome: 'Meu planejamento',
-      meta: metaBolsaGlobal == 0 ? 18000 : metaBolsaGlobal,
+      meta: metaBolsaGlobal,
       dataInicio: dataInicioGlobal,
       dataFim: dataFimGlobal,
       quantidadeDias: Planejamento.calcularQuantidadeDias(

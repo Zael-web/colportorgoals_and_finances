@@ -20,6 +20,13 @@ class RegistroScreen extends StatefulWidget {
   State<RegistroScreen> createState() => _RegistroScreenState();
 }
 
+class _ItemCarrinho {
+  _ItemCarrinho({required this.materialNome, this.quantidade = 1});
+
+  String materialNome;
+  int quantidade;
+}
+
 class _RegistroScreenState extends State<RegistroScreen> {
   final TextEditingController quantidadeController = TextEditingController();
   final TextEditingController observacaoController = TextEditingController();
@@ -29,6 +36,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
   int? indiceEditando;
   String formaPagamentoSelecionada = 'Dinheiro';
   String? materialSelecionadoNome;
+  final List<_ItemCarrinho> itensSelecionados = [];
 
   @override
   void initState() {
@@ -54,22 +62,68 @@ class _RegistroScreenState extends State<RegistroScreen> {
   }
 
   void _definirMaterialPadrao() {
+    materialSelecionadoNome = null;
     if (materiaisGlobais.isNotEmpty) {
       materialSelecionadoNome = materiaisGlobais.first.nome;
     }
+    if (itensSelecionados.isEmpty && materiaisGlobais.isNotEmpty) {
+      itensSelecionados.add(_ItemCarrinho(materialNome: materiaisGlobais.first.nome));
+    }
+  }
+
+  MaterialModel? _materialPorNome(String nome) {
+    for (final material in materiaisGlobais) {
+      if (material.nome == nome) {
+        return material;
+      }
+    }
+    return null;
   }
 
   MaterialModel? get materialSelecionado {
     if (materialSelecionadoNome == null) return null;
-
-    for (final material in materiaisGlobais) {
-      if (material.nome == materialSelecionadoNome) {
-        return material;
-      }
-    }
-
-    return null;
+    return _materialPorNome(materialSelecionadoNome!);
   }
+
+  void _adicionarItemCarrinho({String? materialNome}) {
+    if (materiaisGlobais.isEmpty) return;
+    setState(() {
+      itensSelecionados.add(
+        _ItemCarrinho(
+          materialNome: materialNome ?? materiaisGlobais.first.nome,
+          quantidade: 1,
+        ),
+      );
+    });
+  }
+
+  int get quantidadeTotalSelecionada => itensSelecionados.fold(
+        0,
+        (total, item) => total + item.quantidade,
+      );
+
+  double get valorCompraCarrinho => itensSelecionados.fold(0, (total, item) {
+        final material = _materialPorNome(item.materialNome);
+        if (material == null) return total;
+        return total + (material.valorCompra * item.quantidade);
+      });
+
+  double get valorVendaCarrinho => itensSelecionados.fold(0, (total, item) {
+        final material = _materialPorNome(item.materialNome);
+        if (material == null) return total;
+        return total + (material.valorVenda * item.quantidade);
+      });
+
+  double get dizimoCarrinho => calcularDizimoMaterial(valorCompraCarrinho);
+
+  double get taxaCartaoCarrinho =>
+      formaPagamentoSelecionada == 'Cartão' ? valorVendaCarrinho * 0.03 : 0;
+
+  double get valorLiquidoCarrinho =>
+      valorVendaCarrinho - dizimoCarrinho - taxaCartaoCarrinho;
+
+  double get lucroCarrinho =>
+      valorVendaCarrinho - (valorCompraCarrinho + dizimoCarrinho) - taxaCartaoCarrinho;
 
   String formatarMoeda(double valor) {
     return formatarMoedaGlobal(valor);
@@ -165,6 +219,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
     observacaoController.clear();
     formaPagamentoSelecionada = 'Dinheiro';
     dataSelecionada = DateTime.now();
+    itensSelecionados.clear();
     _definirMaterialPadrao();
   }
 
@@ -278,38 +333,45 @@ class _RegistroScreenState extends State<RegistroScreen> {
       return;
     }
 
-    final material = materialSelecionado;
-    final quantidade = quantidadeDigitada;
+    if (itensSelecionados.isEmpty) {
+      messenger?.showSnackBar(
+        const SnackBar(content: Text('Adicione ao menos um material!')),
+      );
+      return;
+    }
+
+    final materiaisValidos = <String>[];
+    for (final item in itensSelecionados) {
+      if (item.quantidade <= 0) {
+        messenger?.showSnackBar(
+          const SnackBar(content: Text('Informe quantidades válidas para cada material!')),
+        );
+        return;
+      }
+
+      final material = _materialPorNome(item.materialNome);
+      if (material == null) {
+        messenger?.showSnackBar(
+          const SnackBar(content: Text('Selecione materiais válidos antes de salvar!')),
+        );
+        return;
+      }
+
+      materiaisValidos.add('${material.nome} x${item.quantidade}');
+    }
+
     final observacao = observacaoController.text.trim();
-
-    if (materialSelecionadoNome == null || material == null) {
-      messenger?.showSnackBar(
-        const SnackBar(content: Text('Selecione um material!')),
-      );
-      return;
-    }
-
-    if (quantidade <= 0) {
-      messenger?.showSnackBar(
-        const SnackBar(content: Text('Informe uma quantidade válida!')),
-      );
-      return;
-    }
-
-    final valorMaterial = valorCompraUnitario * quantidade;
-    final valorComprado = calcularValorPagoMaterial(valorMaterial);
-    final valorVendido = valorVendaUnitario * quantidade;
-    final dizimo = calcularDizimoMaterial(valorMaterial);
-    final taxaCartao = formaPagamentoSelecionada == 'Cartão'
-        ? valorVendido * 0.03
-        : 0.0;
-    final valorLiquido = valorVendido - dizimo - taxaCartao;
+    final valorComprado = valorCompraCarrinho + dizimoCarrinho;
+    final valorVendido = valorVendaCarrinho;
+    final dizimo = dizimoCarrinho;
+    final taxaCartao = taxaCartaoCarrinho;
+    final valorLiquido = valorLiquidoCarrinho;
 
     final novoRegistro = Registro(
-      material: materialSelecionadoNome!,
+      material: materiaisValidos.join(', '),
       vendido: valorVendido,
       comprado: valorComprado,
-      quantidade: quantidade,
+      quantidade: quantidadeTotalSelecionada,
       observacao: observacao,
       data: dataSelecionada,
       formaPagamento: formaPagamentoSelecionada,
@@ -1031,15 +1093,19 @@ class _RegistroScreenState extends State<RegistroScreen> {
           ),
           const SizedBox(height: 12),
           _summaryCard(
-            titulo: 'Livro selecionado',
-            valor: materialSelecionadoNome ?? 'Selecione um material',
+            titulo: 'Materiais selecionados',
+            valor: itensSelecionados.isEmpty
+                ? 'Nenhum material adicionado'
+                : itensSelecionados
+                    .map((item) => '${item.materialNome} x${item.quantidade}')
+                    .join(', '),
             icone: Icons.menu_book,
             cor: corTexto,
           ),
           const SizedBox(height: 10),
           _summaryCard(
-            titulo: 'Quantidade',
-            valor: quantidadeDigitada.toString(),
+            titulo: 'Quantidade total',
+            valor: quantidadeTotalSelecionada.toString(),
             icone: Icons.shopping_basket,
             cor: corTexto,
           ),
@@ -1216,51 +1282,133 @@ class _RegistroScreenState extends State<RegistroScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          DropdownButtonFormField<String>(
-                            initialValue: materialSelecionadoNome,
-                            isExpanded: true,
-                            dropdownColor: corPainel,
-                            items: _materialItems(),
-                            selectedItemBuilder: (context) {
-                              return materiaisGlobais.map((material) {
-                                return Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    material.nome,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                );
-                              }).toList();
-                            },
-                            decoration: InputDecoration(
-                              labelText: 'Selecione o material',
-                              labelStyle: TextStyle(
-                                color: corTextoPainel.withValues(alpha: 0.72),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Materiais da venda',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: corTextoPainel,
+                                ),
                               ),
-                              filled: true,
-                              fillColor: corPainel,
-                              border: const OutlineInputBorder(),
-                            ),
-                            onChanged: temMateriais
-                                ? (value) {
-                                    setState(() {
-                                      materialSelecionadoNome = value;
-                                    });
-                                  }
-                                : null,
+                              TextButton.icon(
+                                onPressed: temMateriais
+                                    ? () => _adicionarItemCarrinho()
+                                    : null,
+                                icon: const Icon(Icons.add_shopping_cart),
+                                label: const Text('Adicionar'),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: quantidadeController,
-                            onChanged: (_) => setState(() {}),
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Quantidade de livros',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
+                          if (itensSelecionados.isEmpty)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: temaEscuro
+                                      ? Colors.white24
+                                      : Colors.blueGrey.shade200,
+                                ),
+                              ),
+                              child: const Text(
+                                'Nenhum material adicionado. Clique em “Adicionar” para incluir uma venda de múltiplos materiais.',
+                                style: TextStyle(fontSize: 13),
+                              ),
+                            )
+                          else
+                            ...itensSelecionados.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final item = entry.value;
+                              return Container(
+                                margin: const EdgeInsets.only(top: 10),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: temaEscuro
+                                      ? const Color(0xFF123B68).withValues(alpha: 0.28)
+                                      : const Color(0xFFF4F9FF),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: temaEscuro
+                                        ? Colors.white12
+                                        : Colors.blueGrey.shade200,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            'Item ${index + 1}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              color: corTextoPainel,
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              itensSelecionados.removeAt(index);
+                                            });
+                                          },
+                                          tooltip: 'Remover item',
+                                          icon: const Icon(Icons.delete_outline),
+                                        ),
+                                      ],
+                                    ),
+                                    DropdownButtonFormField<String>(
+                                      value: item.materialNome,
+                                      isExpanded: true,
+                                      dropdownColor: corPainel,
+                                      items: _materialItems(),
+                                      decoration: InputDecoration(
+                                        labelText: 'Material',
+                                        labelStyle: TextStyle(
+                                          color: corTextoPainel.withValues(alpha: 0.72),
+                                        ),
+                                        filled: true,
+                                        fillColor: corPainel,
+                                        border: const OutlineInputBorder(),
+                                      ),
+                                      onChanged: temMateriais
+                                          ? (value) {
+                                              if (value == null) return;
+                                              setState(() {
+                                                item.materialNome = value;
+                                              });
+                                            }
+                                          : null,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    TextFormField(
+                                      initialValue: item.quantidade.toString(),
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: 'Quantidade',
+                                        labelStyle: TextStyle(
+                                          color: corTextoPainel.withValues(alpha: 0.72),
+                                        ),
+                                        filled: true,
+                                        fillColor: corPainel,
+                                        border: const OutlineInputBorder(),
+                                      ),
+                                      onChanged: (value) {
+                                        final quantidade = int.tryParse(value) ?? 0;
+                                        setState(() {
+                                          item.quantidade = quantidade.clamp(0, 9999);
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
                           const SizedBox(height: 12),
                           DropdownButtonFormField<String>(
                             initialValue: formaPagamentoSelecionada,
